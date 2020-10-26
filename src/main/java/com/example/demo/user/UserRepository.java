@@ -1,6 +1,6 @@
-package com.example.demo.sample;
+package com.example.demo.user;
 import org.springframework.data.repository.CrudRepository;
-import com.example.demo.sample.User;
+import com.example.demo.user.User;
 import java.util.Optional;
 
 // This will be AUTO IMPLEMENTED by Spring into a Bean called userRepository

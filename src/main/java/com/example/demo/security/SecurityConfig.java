@@ -36,19 +36,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     http
       .cors().and().csrf().disable();
-    
     http
       .requiresChannel()
       .anyRequest()
       .requiresSecure();
-    
     http
       .httpBasic()
         .and()
       .authorizeRequests()
         .antMatchers(HttpMethod.GET, "/all", "/all/**").hasAnyRole("MANAGER", "ANALYST", "USER")
-        .antMatchers(HttpMethod.POST, "/add", "/add/**").hasRole("MANAGER")
-        .antMatchers(HttpMethod.GET, "/customers", "/customers/**").permitAll()
+        .antMatchers(HttpMethod.GET, "/customers", "/customers/**").hasAnyRole("MANAGER", "ANALYST", "USER")
+        .antMatchers(HttpMethod.POST, "/customers", "/customers/**").hasRole("MANAGER")
+        .antMatchers(HttpMethod.PUT, "/customers", "/customers/**").hasAnyRole("MANAGER", "ANALYST", "USER")
         .and()
       .formLogin().disable();
   }
