@@ -1,4 +1,0 @@
-DROP DATABASE IF EXISTS transfers;
-CREATE DATABASE IF NOT EXISTS transfers;
-
-USE transfers;
