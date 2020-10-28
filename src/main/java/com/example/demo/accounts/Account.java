@@ -31,12 +31,14 @@ public class Account {
     // public Transfer[] getTransfers() { return this.transactions; }
 
     // SETTERS
+    public void setCustomerID(int customer_id) {
+        this.customer_id = customer_id;
+    }
+    
     public void updateBalance(double addBalance) { 
         this.balance += addBalance;
         this.available_balance += addBalance;
     }
     
-    public void setCustomerID(int customer_id) {
-        this.customer_id = customer_id;
-    }
+    
 }
