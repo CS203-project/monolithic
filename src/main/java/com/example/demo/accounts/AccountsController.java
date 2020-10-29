@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-
 import com.example.demo.security.AuthorizedUser;
 
 import org.springframework.security.core.context.SecurityContextHolder;
