@@ -1,4 +1,5 @@
-package csd.testclient;
+package com.example.demo;
+// package csd.testclient;
 
 public class TestConstants {
     // this class defines constants, values and API endpoints 

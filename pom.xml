@@ -16,6 +16,10 @@
 
 	<properties>
 		<java.version>11</java.version>
+
+		<!--ACCOUNTS TESTS-->
+		<rest-assured.version>4.3.0</rest-assured.version>
+    	<groovy.version>3.0.2</groovy.version>
 	</properties>
 
 	<dependencies>
@@ -73,6 +77,30 @@
 				</exclusion>
 			</exclusions> -->
 		</dependency>
+
+		<!--ACCOUNTS TESTING DEPENDENCIES-->
+
+		<!--JSONPath-->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>json-path</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+
+		<!--REST Assured-->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+
+		<!--XML Path-->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>xml-path</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
