@@ -10,6 +10,8 @@ import java.util.*;
 import java.lang.IllegalArgumentException;
 import java.lang.IllegalStateException;
 
+import com.example.demo.cms.ContentNotFoundException;
+
 @ControllerAdvice
 public class GlobalControllerExceptionHandler {
   @ExceptionHandler
@@ -56,4 +58,14 @@ public class GlobalControllerExceptionHandler {
     response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
     response.flushBuffer();
   }
+
+  @ExceptionHandler
+  void handleIllegalStateException(ContentNotFoundException e, HttpServletResponse response) throws IOException {
+    response.resetBuffer();
+    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    response.setHeader("Content-Type", "application/json");
+    response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
+    response.flushBuffer();
+  }
+
 }

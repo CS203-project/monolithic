@@ -12,6 +12,5 @@ public class ContentNotFoundException extends RuntimeException{
 
     public ContentNotFoundException(int id) {
         super("Could not find book " + id);
-    }
-    
+    }  
 }

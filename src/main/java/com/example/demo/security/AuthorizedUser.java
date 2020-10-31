@@ -20,4 +20,16 @@ public class AuthorizedUser {
     }
     return isManager;
   }
+  
+  public boolean isAnalyst() {
+    boolean isAnalyst = false;
+    for (GrantedAuthority authority : this.user.getAuthorities()) {
+      if (authority.getAuthority().equals("ROLE_ANALYST")) {
+        isAnalyst = true;
+        break;
+      }
+    }
+    return isAnalyst;
+  }
+  
 }

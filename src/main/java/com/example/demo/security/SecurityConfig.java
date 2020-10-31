@@ -48,6 +48,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.GET, "/customers", "/customers/**").hasAnyRole("MANAGER", "ANALYST", "USER")
         .antMatchers(HttpMethod.POST, "/customers", "/customers/**").hasRole("MANAGER")
         .antMatchers(HttpMethod.PUT, "/customers", "/customers/**").hasAnyRole("MANAGER", "ANALYST", "USER")
+        .antMatchers(HttpMethod.GET, "/content", "/content/**").hasAnyRole("MANAGER", "ANALYST", "USER")
+        .antMatchers(HttpMethod.DELETE, "/content", "/content/**").hasAnyRole("MANAGER","ANALYST")
+        .antMatchers(HttpMethod.POST, "/content", "/content/**").hasAnyRole("MANAGER", "ANALYST")
+        .antMatchers(HttpMethod.PUT, "/content", "/content/**").hasAnyRole("MANAGER", "ANALYST")
         .and()
       .formLogin().disable();
   }
