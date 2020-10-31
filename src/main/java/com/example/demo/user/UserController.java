@@ -94,14 +94,13 @@ public class UserController {
   * @ResponseStatus   200 OK
   * DETAILS           Return user if edited, unauthorized (403 FORBIDDEN), invalid edited user (400 BAD REQUEST)
   */
-  @RequestMapping(value = "/customers", method = RequestMethod.PUT)
+  @RequestMapping(value = "/customers/{id}", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody User editUser (@Valid @RequestBody User user) throws BadRequestException, ForbiddenException {
+  public @ResponseBody User editUser (@Valid @RequestBody User user, @PathVariable int id) throws BadRequestException, ForbiddenException {
     System.out.println("PUT /customers | " + user);
     AuthorizedUser context = new AuthorizedUser();
 
-    if (user.getId() == null && user.getUsername() == null) throw new BadRequestException("Edited User's ID not provided");
-    User search = (user.getId() != null) ? this.US.findById(user.getId()) : this.US.findByUsername(user.getUsername());
+    User search = this.US.findById(id);
     if (search == null) throw new BadRequestException("Edited User does not exists");
     
     if (context.isManager()) return this.US.save(user);
