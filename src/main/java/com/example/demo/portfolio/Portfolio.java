@@ -17,4 +17,6 @@ public class Portfolio {
             gainLoss += a.getGainLoss();
         return gainLoss;
     }
+
+    // public double getRealizedGainLoss()
 }

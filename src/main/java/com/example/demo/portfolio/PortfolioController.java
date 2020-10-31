@@ -4,7 +4,6 @@ import com.example.demo.security.AuthorizedUser;
 import com.example.demo.user.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,9 +24,10 @@ public class PortfolioController {
         this.currUser = context.getUser();
     }
 
-    @PostMapping(path = "/portfolio/{id}")
-    public @ResponseBody Portfolio getPortfolio(@PathVariable int id) {
+    @PostMapping(path = "/portfolio")
+    public @ResponseBody Portfolio getPortfolio() {
         authenticateCurrentUser();
+        int id = currUser.getId();
         return new Portfolio(id, assets.findAssetByCustomerId(id));
     }
 }

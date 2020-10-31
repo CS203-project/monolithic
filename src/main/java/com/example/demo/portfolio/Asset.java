@@ -18,7 +18,7 @@ public class Asset {
         this.avgPrice = avgPrice;
         this.currPrice = currPrice;
     }
-    
+
     public double getValue() {
         return currPrice * quantity;
     }
