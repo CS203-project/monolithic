@@ -7,3 +7,7 @@ insert into user (id,nric,phone,address,username,password,authorities,active,ful
 insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (123456,"S9804803G","+6591234567","Address","good_user_1","$2a$12$R/xVcNg5pz0rxhVZitlLgu5OFE1RRTJMlrIuyEiC1RIVbXk9YHaHi","ROLE_USER",true,"fullName");
 
 insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (123457,"S9804803G","+6591234567","Address","good_user_2","$2a$12$x1THK0tCAFD/B5mh1P2a5ebzhCNs0F9vc5XpbJ2lwzk.ND3YMPewW","ROLE_USER",true,"fullName");
+
+insert into account (id, customer_id, balance, available_balance) values (12345, 123456, 50000.0, 50000.0);
+
+insert into account (id, customer_id, balance, available_balance) values (12346, 123457, 100000.0, 100000.0);

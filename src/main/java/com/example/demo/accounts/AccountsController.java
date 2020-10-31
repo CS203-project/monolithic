@@ -30,9 +30,6 @@ public class AccountsController {
 
     // @Autowired
     private UserService usrService;
-    
-    // do constructor autowiring
-    // wire in UserService
 
     @Autowired
     public AccountsController(AccountsRepository accRepository, UserService usrService) {
@@ -47,13 +44,12 @@ public class AccountsController {
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
 
-        // call user service
-
-
-        // check if account.getCustomer_Id exists in database
+        // Check if current user associated with new account exists
+        if (usrService.findById(account.getCustomer_id()) == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
 
         return accRepository.save(account);
-
         // return "Account saved!\n" + account.toString();
     }
 

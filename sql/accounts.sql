@@ -1,4 +1,0 @@
-DROP DATABASE IF EXISTS accounts;
-CREATE DATABASE IF NOT EXISTS accounts;
-
-USE accounts;
