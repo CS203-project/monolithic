@@ -28,17 +28,12 @@ public class AccountsController {
 
     public AccountsController() {}
 
-    User currentUser;
-    
-    public void authenticateCurrentUser() {
-        AuthorizedUser context = new AuthorizedUser();
-        this.currentUser = context.getUser();
-    }
-
     @PostMapping(path="/accounts")
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody Account addAccount (@RequestBody Account account) {
-        authenticateCurrentUser();
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
 
         // check if account.getCustomer_Id exists in database
 
@@ -50,7 +45,9 @@ public class AccountsController {
     @GetMapping(path="/accounts")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Iterable<Account> getAccounts() {
-        authenticateCurrentUser();
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
 
         int userID = currentUser.getId();
         
@@ -69,7 +66,9 @@ public class AccountsController {
     @GetMapping(path="/accounts/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Account getAccountById(@PathVariable int id) {
-        authenticateCurrentUser();
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
 
         int userID = currentUser.getId();
 
@@ -79,9 +78,13 @@ public class AccountsController {
             throw new AccountNotFoundException(id);
         } else {
             account = accountEntity.get();
-            // if (account.getCustomer_id() != userID) {
-            //     throw new org.springframework.security.access.AccessDeniedException("403 returned");
-            // }
+            if (account.getCustomer_id() != userID) {
+                System.out.println("PRINTTTT");
+                System.out.println(account.getCustomer_id());
+                System.out.println(account);
+                System.out.println(userID);
+                throw new org.springframework.security.access.AccessDeniedException("403 returned");
+            }
         }
 
         return account;
