@@ -4,6 +4,6 @@ insert into user (id,nric,phone,address,username,password,authorities,active,ful
 
 insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (902,"S9804803G","+6591234567","Address","analyst_2","$2a$12$QyKb9B/EXlFc9vdj1bf2geET6/JaoGn.sy3vcX.RYli0WRqauMPja","ROLE_ANALYST",true,"fullName");
 
-insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (903,"S9804803G","+6591234567","Address","good_user_1","$2a$12$R/xVcNg5pz0rxhVZitlLgu5OFE1RRTJMlrIuyEiC1RIVbXk9YHaHi","ROLE_USER",true,"fullName");
+insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (123456,"S9804803G","+6591234567","Address","good_user_1","$2a$12$R/xVcNg5pz0rxhVZitlLgu5OFE1RRTJMlrIuyEiC1RIVbXk9YHaHi","ROLE_USER",true,"fullName");
 
-insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (904,"S9804803G","+6591234567","Address","good_user_2","$2a$12$x1THK0tCAFD/B5mh1P2a5ebzhCNs0F9vc5XpbJ2lwzk.ND3YMPewW","ROLE_USER",true,"fullName");
+insert into user (id,nric,phone,address,username,password,authorities,active,full_name) values (123457,"S9804803G","+6591234567","Address","good_user_2","$2a$12$x1THK0tCAFD/B5mh1P2a5ebzhCNs0F9vc5XpbJ2lwzk.ND3YMPewW","ROLE_USER",true,"fullName");

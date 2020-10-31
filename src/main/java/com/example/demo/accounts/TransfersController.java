@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.HttpStatus;
+
 import com.example.demo.security.AuthorizedUser;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
@@ -54,6 +57,7 @@ public class TransfersController {
     }
 
     @GetMapping(path="/accounts/{id}/transactions")
+    @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Iterable<Transfer> getTransfers(@PathVariable int id) {
         
         if (!verifyAccountOwnership(id)) {
@@ -74,6 +78,7 @@ public class TransfersController {
     }
 
     @PostMapping(path="/accounts/{id}/transactions")
+    @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody String createTransfer(@RequestBody Transfer transfer, @PathVariable int id) {
         if (!verifyAccountOwnership(transfer.getFrom())) {
             throw new AccessDeniedException("403 returned");
