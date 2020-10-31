@@ -93,25 +93,25 @@ public class AccountsTest {
 //      * Test account creation: invalid data, return 400 - Bad Request
 //      * @throws Exception
 //      */
-//     @Test
-//     @Order(2)
-//     public void testAddAccount_Invalid_Return400() throws Exception{
-//         JSONObject requestParams = new JSONObject();
-//         // invalid customer id (does not exist) - return 400 Bad Request
-//         requestParams.put("customer_id", 987650);
-//         requestParams.put("balance", 50000);
+    @Test
+    @Order(2)
+    public void testAddAccount_Invalid_Return400() throws Exception{
+        JSONObject requestParams = new JSONObject();
+        // invalid customer id (does not exist) - return 400 Bad Request
+        requestParams.put("customer_id", 987650);
+        requestParams.put("balance", 50000);
 
-//         // available balance specified here will be igored by the API
-//         requestParams.put("avail_balance", 100000);
+        // available balance specified here will be igored by the API
+        requestParams.put("avail_balance", 100000);
             
-//         given().auth().basic(TestConstants.m_USERNAME, TestConstants.m_PASSWORD)
-//                 .accept("*/*")
-//                 .contentType("application/json")
-//                 .body(requestParams.toJSONString())
-//                 .post(TestConstants.accountURL)
-//                 .then()
-//                 .statusCode(400);
-//     }
+        given().auth().basic(TestConstants.m_USERNAME, TestConstants.m_PASSWORD)
+                .accept("*/*")
+                .contentType("application/json")
+                .body(requestParams.toJSONString())
+                .post(TestConstants.accountURL)
+                .then()
+                .statusCode(400);
+    }
     
 //     /**
 //      * Test transfer funds - success
