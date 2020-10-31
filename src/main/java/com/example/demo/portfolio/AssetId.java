@@ -11,4 +11,12 @@ public class AssetId {
         this.customerId = customerId;
         this.stockCode = stockCode;
     }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public String getStockCode() {
+        return stockCode;
+    }
 }

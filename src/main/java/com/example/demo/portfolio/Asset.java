@@ -19,6 +19,22 @@ public class Asset {
         this.currPrice = currPrice;
     }
 
+    public AssetId getAssetId() {
+        return assetId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public double getAvgPrice() {
+        return avgPrice;
+    }
+
+    public double getCurrPrice() {
+        return currPrice;
+    }
+
     public double getValue() {
         return currPrice * quantity;
     }

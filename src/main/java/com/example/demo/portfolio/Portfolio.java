@@ -11,6 +11,20 @@ public class Portfolio {
         this.assets = assets;
     }
 
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public List<Asset> getAssets() {
+        return assets;
+    }
+
+    public void addAsset(Asset asset) {
+        if (asset.getAssetId().getCustomerId() != customerId)
+            throw new RuntimeException();
+        assets.add(asset);
+    }
+
     public double getUnrealizedGainLoss() {
         double gainLoss = 0;
         for (Asset a : assets)
