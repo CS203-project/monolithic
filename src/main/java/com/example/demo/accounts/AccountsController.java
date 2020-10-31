@@ -21,12 +21,24 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import com.example.demo.user.User;
 
+import com.example.demo.user.UserService;
+
 @RestController
 public class AccountsController {
-    @Autowired
+    // @Autowired
     private AccountsRepository accRepository;
 
-    public AccountsController() {}
+    // @Autowired
+    private UserService usrService;
+    
+    // do constructor autowiring
+    // wire in UserService
+
+    @Autowired
+    public AccountsController(AccountsRepository accRepository, UserService usrService) {
+        this.accRepository = accRepository;
+        this.usrService = usrService;
+    }
 
     @PostMapping(path="/accounts")
     @ResponseStatus(HttpStatus.CREATED)
@@ -34,6 +46,9 @@ public class AccountsController {
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
+
+        // call user service
+
 
         // check if account.getCustomer_Id exists in database
 
@@ -79,10 +94,6 @@ public class AccountsController {
         } else {
             account = accountEntity.get();
             if (account.getCustomer_id() != userID) {
-                System.out.println("PRINTTTT");
-                System.out.println(account.getCustomer_id());
-                System.out.println(account);
-                System.out.println(userID);
                 throw new org.springframework.security.access.AccessDeniedException("403 returned");
             }
         }
