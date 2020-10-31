@@ -53,7 +53,8 @@ public class TestConstants {
      *
      */
     // enter the base URL of your api here
-    public static String baseURL = "https://yourdomainname.com/api";
+    // public static String baseURL = "https://yourdomainname.com/api";
+    public static String baseURL = "https://localhost:8443";
 
     // the below variables specify various enpoints of your api
     // together with description of functionalities provided by each endpoint
