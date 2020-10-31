@@ -16,7 +16,7 @@ import lombok.*;
 public class Trade {
 
     @Id @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long tradeId;
+    private int id;
 
     private String action;
     private String symbol;
