@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.web.server.ResponseStatusException;
+
 import com.example.demo.security.AuthorizedUser;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
@@ -79,7 +81,8 @@ public class TransfersController {
 
     @PostMapping(path="/accounts/{id}/transactions")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody String createTransfer(@RequestBody Transfer transfer, @PathVariable int id) {
+    public @ResponseBody Transfer createTransfer(@RequestBody Transfer transfer, @PathVariable int id) {
+
         if (!verifyAccountOwnership(transfer.getFrom())) {
             throw new AccessDeniedException("403 returned");
         }
@@ -97,20 +100,24 @@ public class TransfersController {
         if (!receiver_account.isPresent()) throw new AccountNotFoundException(receiver_account_id);
 
         double transfer_amount = transfer.getAmount();
+        System.out.println("PRINTTT");
+        System.out.println(transfer_amount);
 
         Account sender = sender_account.get();
         Account receiver = receiver_account.get();
 
-        if (sender.getAvailable_balance() < transfer_amount) {
-            return "Insufficient funds for transfer";
+        System.out.println("PRINTTT");
+        System.out.println(sender);
+        System.out.println(receiver);
+
+        if (sender.getBalance() < transfer_amount) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         sender.updateBalance(-transfer_amount);
         receiver.updateBalance(transfer_amount);
 
-        transfersRepository.save(transfer);
-
-        return "Funds successfully transferred.\n" + transfer.toString();
+        return(transfersRepository.save(transfer));
     }
 
 }
