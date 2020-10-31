@@ -1,35 +1,31 @@
-// package com.example.demo.accounts;
+package com.example.demo.accounts;
 
-// import org.springframework.beans.factory.annotation.Autowired; 
+import org.springframework.beans.factory.annotation.Autowired; 
 
-// import java.nio.file.AccessDeniedException;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.HttpStatus;
 
-// public class TradeAccounts {
+import org.springframework.web.server.ResponseStatusException;
 
-//     @Autowired
-//     private AccountsController accController;
+public class TradeAccounts {
 
-//     public TradeAccounts() {}
+    private AccountsController accController;
 
-//     // Return account requested with ID
-//     public Account returnAccountWithID(int id) {
-//         try {
-//             return accController.getAccountById(id);
-//         } catch (AccessDeniedException e) {
-//             return null;
-//         }
-        
-//     }
+    @Autowired
+    public TradeAccounts(AccountsController accController) {
+        this.accController = accController;
+    }
 
-//     // Verify account belongs to customer
-//     public boolean verifyAccountOwnership(int customer_id, int account_id) {
-//         try {
-//             Account account = accController.getAccountById(account_id);
-//             if (account.getCustomer_id() != customer_id) return false;
-//             return true;
-//         } catch (AccessDeniedException e) {
-//             return false;
-//         }
-//     }
+    // Return account requested with ID
+    public Account returnAccountWithID(int id) {
+        return accController.getAccountById(id);
+    }
 
-// }
+    // Verify account belongs to customer
+    public boolean verifyAccountOwnership(int customer_id, int account_id) {
+        Account account = accController.getAccountById(account_id);
+        if (account.getCustomer_id() != customer_id) return false;
+        return true;
+    }
+
+}

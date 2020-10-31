@@ -100,15 +100,9 @@ public class TransfersController {
         if (!receiver_account.isPresent()) throw new AccountNotFoundException(receiver_account_id);
 
         double transfer_amount = transfer.getAmount();
-        System.out.println("PRINTTT");
-        System.out.println(transfer_amount);
 
         Account sender = sender_account.get();
         Account receiver = receiver_account.get();
-
-        System.out.println("PRINTTT");
-        System.out.println(sender);
-        System.out.println(receiver);
 
         if (sender.getBalance() < transfer_amount) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
