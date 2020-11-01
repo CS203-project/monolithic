@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Optional;
 import java.util.Arrays;
 
 @EnableWebSecurity
@@ -54,6 +55,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.POST, "/trades").hasRole("USER")
         .antMatchers(HttpMethod.GET, "/trades", "/trades/*").hasRole("USER")
         .antMatchers(HttpMethod.PUT, "/trades/*").hasRole("USER")
+        .antMatchers(HttpMethod.GET, "/stocks", "/stocks/*").authenticated()
+        .antMatchers(HttpMethod.POST, "/stocks", "/stocks/*").authenticated()
         .and()
       .formLogin().disable();
   }
