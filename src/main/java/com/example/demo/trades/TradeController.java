@@ -46,27 +46,31 @@ public class TradeController {
     }
 
     private Account getAccountForTrade(int account_id) {
-        Optional<Account> accountEntity = accRepository.findById(account_id);
-        Account account;
-        if (!accountEntity.isPresent()) {
-            throw new AccountNotFoundException(account_id);
-        } else {
-            account = accountEntity.get();
-        }
+        Account accountEntity = accRepository.findById(account_id).orElseThrow();
+        // Account account;
+        // if (!accountEntity.isPresent()) {
+        //     throw new AccountNotFoundException(account_id);
+        // } else {
+        //     account = accountEntity.get();
+        // }
 
-        return account;
+        // Account account = accountEntity.get();
+
+        return accountEntity;
     }
 
     private Stock getStockForTrade(String stockSymbol) {
-        Optional<Stock> stockEntity = stocksRepository.findBySymbol(stockSymbol);
-        Stock stock;
-        if (!stockEntity.isPresent()) {
-            throw new StockNotFoundException(stockSymbol);
-        } else {
-            stock = stockEntity.get();
-        }
+        Stock stockEntity = stocksRepository.findBySymbol(stockSymbol).orElseThrow();
+        // Stock stock;
+        // if (!stockEntity.isPresent()) {
+        //     throw new StockNotFoundException(stockSymbol);
+        // } else {
+        //     stock = stockEntity.get();
+        // }
 
-        return stock;
+        // Stock stock = stockEntity.get();
+
+        return stockEntity;
     }
 
     private boolean processTransaction(Trade trade) {
@@ -111,6 +115,12 @@ public class TradeController {
 
             if(!processTransaction(trade)) {
                 // insufficient balance, partially fill
+                Account acc = getAccountForTrade(trade.getAccount_id());
+                int canFill = (int)(acc.getBalance() / stock.getAsk());
+
+                if (canFill > 0) {
+                    trade.setFilled_quantity(canFill);
+                }
             }
 
             // REFLECT TO PORTFOLIO
@@ -125,10 +135,18 @@ public class TradeController {
 
             if(!processTransaction(trade)) {
                 // insufficient balance, partially fill
+                Account acc = getAccountForTrade(trade.getAccount_id());
+                int canFill = (int)(acc.getBalance() / stock.getAsk());
+
+                if (canFill > 0) {
+                    trade.setFilled_quantity(canFill);
+                }
             }
 
             // REFLECT TO PORTFOLIO
         }
+
+        // PROCESS LIMIT ORDERS
         
         return null;
     }
