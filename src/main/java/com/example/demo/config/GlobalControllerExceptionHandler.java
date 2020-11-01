@@ -56,4 +56,13 @@ public class GlobalControllerExceptionHandler {
     response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
     response.flushBuffer();
   }
+
+  @ExceptionHandler
+  void handleIllegalStateException(NotFoundException e, HttpServletResponse response) throws IOException {
+    response.resetBuffer();
+    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    response.setHeader("Content-Type", "application/json");
+    response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
+    response.flushBuffer();
+  }
 }
