@@ -2,6 +2,7 @@ package com.example.demo.trades;
 
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.web.bind.annotation.GetMapping; 
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,22 +58,29 @@ public class StockController {
         this.stocksRepository = stocksRepository;
     }
 
+    @PostMapping(path="/stocks")
+    @ResponseStatus(HttpStatus.OK)
+    public @ResponseBody Iterable<Stock> createStocks() {
+        List<Stock> stocks = getStocksFromAPI();
+        for (Stock stock : stocks) {
+            stocksRepository.save(stock);
+        }
+        return stocks;
+    }
+
     @GetMapping(path="/stocks")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Iterable<Stock> getStocks() {
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
-        currentUser = context.getUser();
-        return getStocksFromAPI();
+        return stocksRepository.findAll();
     }
 
     @GetMapping(path="/stocks/{symbol}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Stock getStockById(@PathVariable String symbol) throws NotFoundException {
-        List<Stock> stocks = getStocksFromAPI();
-        for (Stock stock : stocks) {
-            if (stock.getSymbol().equals(symbol)) return stock;
-        }
-        throw new NotFoundException("Stock not found");
+        Optional<Stock> stock = stocksRepository.findBySymbol(symbol);
+        if (!stock.isPresent()) throw new NotFoundException("Stock not found");
+        return stock.get();
     }
 }

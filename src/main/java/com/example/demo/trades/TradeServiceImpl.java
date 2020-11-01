@@ -27,11 +27,6 @@ public class TradeServiceImpl implements TradeService {
 
     @Override
     public Trade addTrade(Trade trade) {
-        return null;
-    }
-
-    @Override
-    public Trade updateTrade(int id, Trade trade) {
-        return null;
+        return tradeRepository.save(trade);
     }
 }

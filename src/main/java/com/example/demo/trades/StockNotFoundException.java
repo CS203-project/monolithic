@@ -10,8 +10,8 @@ public class StockNotFoundException extends RuntimeException{
      */
     private static final long serialVersionUID = 1L;
 
-    public StockNotFoundException(int stockId) {
-        super("Could not find stock " + stockId);
+    public StockNotFoundException(String symbol) {
+        super("Could not find stock " + symbol);
     }
     
 }

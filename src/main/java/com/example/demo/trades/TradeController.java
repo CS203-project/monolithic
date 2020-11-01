@@ -23,6 +23,9 @@ import java.time.Instant;
 import com.example.demo.accounts.AccountsRepository;
 import com.example.demo.accounts.AccountNotFoundException;
 import com.example.demo.accounts.Account;
+import com.example.demo.trades.StocksRepository;
+import com.example.demo.trades.Stock;
+import com.example.demo.trades.StockNotFoundException;
 
 import java.util.Optional;
 import java.util.List;
@@ -32,6 +35,7 @@ public class TradeController {
     
     private TradeService tradeService;
     private AccountsRepository accRepository;
+    private StocksRepository stocksRepository;
 
     // either Stocks repository or a list of stocks available to trade
 
@@ -53,9 +57,39 @@ public class TradeController {
         return account;
     }
 
+    private Stock getStockForTrade(String stockSymbol) {
+        Optional<Stock> stockEntity = stocksRepository.findBySymbol(stockSymbol);
+        Stock stock;
+        if (!stockEntity.isPresent()) {
+            throw new StockNotFoundException(stockSymbol);
+        } else {
+            stock = stockEntity.get();
+        }
+
+        return stock;
+    }
+
+    private boolean processTransaction(Trade trade) {
+        int account_id = trade.getAccount_id();
+        int customer_id = trade.getCustomer_id();
+
+        Account account = getAccountForTrade(account_id);
+        if (account.getCustomer_id() != customer_id) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        if (account.getBalance() < trade.getAvg_price() * trade.getFilled_quantity()) {
+            return false;
+        }
+
+        account.updateBalance(-(trade.getAvg_price() * trade.getFilled_quantity()));
+        return true;
+    }
+
     @PostMapping("/trades")
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
+
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
@@ -64,37 +98,37 @@ public class TradeController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        // Market order but insufficient volume
-        // 1) GET STOCK BY SYMBOL
-        if ((trade.getBid() == 0.0 || trade.getAsk() == 0.0) && false) {
-            // () && stock.getAsk_volume() < trade.getQuantity()
+        String stockSymbol = trade.getSymbol();
+        Stock stock = getStockForTrade(stockSymbol);
+        
+        if ((trade.getBid() == 0.0 || trade.getAsk() == 0.0) && stock.getAsk_volume() < trade.getQuantity()) {
+            // Market order but insufficient volume
+
             trade.setStatus("partial-filled");
             trade.setDate(Instant.now());
-            // 2) trade.setAvg_price(stock.getPrice)
-        }
+            trade.setFilled_quantity(stock.getAsk_volume());
+            trade.setAvg_price(stock.getAsk());
 
-        // Market orders - filled immediately - extract to method fillMarketOrder
-        // 1) GET STOCK BY SYMBOL
-        if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
+            if(!processTransaction(trade)) {
+                // insufficient balance, partially fill
+            }
+
+            // REFLECT TO PORTFOLIO
+
+        } else if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
+            // Market orders - filled immediately - extract to method fillMarketOrder
+
             trade.setStatus("filled");
             trade.setDate(Instant.now());
             trade.setFilled_quantity(trade.getQuantity());
-            // 2) trade.setAvg_price(stock.getPrice)
-            
-            int account_id = trade.getAccount_id();
-            int customer_id = trade.getCustomer_id();
+            trade.setAvg_price(stock.getAsk());
 
-            Account account = getAccountForTrade(account_id);
-            if (account.getCustomer_id() != customer_id) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            if(!processTransaction(trade)) {
+                // insufficient balance, partially fill
             }
-
-            account.updateBalance(-(trade.getAvg_price() * trade.getFilled_quantity()));
 
             // REFLECT TO PORTFOLIO
         }
-
-
         
         return null;
     }
@@ -102,13 +136,15 @@ public class TradeController {
     @GetMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade getTradeByID(@PathVariable int id) {
-        return null;
+        return tradeService.getTrade(id);
     }
 
     @PutMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Trade cancelTrade(@PathVariable int id, @RequestBody Trade trade) {
-        return null;
+    public @ResponseBody Trade cancelTrade(@PathVariable int id) {
+        Trade trade = tradeService.getTrade(id);
+        trade.setStatus("cancelled");
+        return trade;
     }
 
 }

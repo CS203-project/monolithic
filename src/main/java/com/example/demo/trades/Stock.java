@@ -15,8 +15,8 @@ import org.json.JSONArray;
 @Setter
 @ToString
 public class Stock {
-
-    @Id
+    @Id @GeneratedValue(strategy=GenerationType.SEQUENCE)
+    private int id;
     private String symbol;
     private double last_price;
     private int bid_volume;
