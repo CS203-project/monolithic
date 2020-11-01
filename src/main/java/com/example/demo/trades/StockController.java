@@ -1,5 +1,7 @@
 package com.example.demo.trades;
 
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.web.bind.annotation.GetMapping; 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,13 +23,16 @@ import com.example.demo.user.User;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.json.simple.JSONArray;
+// import org.json.simple.JsonArray;
+// import org.json.simple.JsonObject;
 
 @RestController
 public class StockController {
     
     private StocksRepository stocksRepository;
 
-    private void getStocksFromAPI() {
+    private JSONArray getStocksFromAPI() {
         final String uri = "http://api.marketstack.com/v1/eod?access_key=fc9afa79e8a0b4c9be2d89574e7f8cae&symbols=MSFT,AAPL,AMZN,ADBE";
         RestTemplate restTemplate = new RestTemplate();
         String result = restTemplate.getForObject(uri, String.class);
@@ -44,9 +49,34 @@ public class StockController {
             System.out.println("No stocks found");
         }
 
-        System.out.println(json);
+        JSONArray array = (JSONArray) json.get("data");
+
+        return array;
     }
 
+    private List<Stock> createStocks() {
+        JSONArray array = getStocksFromAPI();
+        Iterator<String> iterator = array.iterator();
+        while (iterator.hasNext()) {
+
+        }
+
+        return null;
+    }
+
+    /*
+        @Id
+        private String symbol;
+        
+        private double last_price;
+        private int bid_volume;
+        private double bid;
+        private int ask_volume;
+        private double ask;
+
+        public Stock() {}
+    */
+    
     @Autowired
     public StockController(StocksRepository stocksRepository) {
         this.stocksRepository = stocksRepository;
