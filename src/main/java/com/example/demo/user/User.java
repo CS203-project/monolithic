@@ -26,7 +26,8 @@ public class User implements UserDetails {
   private String fullName;
   @Pattern(regexp = "^S\\d{7}[A-Z]$")
   private String nric;
-  @Pattern(regexp = "^[+]65(6|8|9)\\d{7}$")
+  // @Pattern(regexp = "^[+]65(6|8|9)\\d{7}$")
+  @Pattern(regexp = "^(6|8|9)\\d{7}$")
   private String phone;
   private String address;
   @Column(name="username", nullable=false, unique=true)

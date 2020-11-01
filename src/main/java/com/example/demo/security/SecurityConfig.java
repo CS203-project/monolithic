@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Optional;
 import java.util.Arrays;
 
 @EnableWebSecurity
@@ -52,6 +53,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.DELETE, "/content", "/content/**").hasAnyRole("MANAGER","ANALYST")
         .antMatchers(HttpMethod.POST, "/content", "/content/**").hasAnyRole("MANAGER", "ANALYST")
         .antMatchers(HttpMethod.PUT, "/content", "/content/**").hasAnyRole("MANAGER", "ANALYST")
+        .antMatchers(HttpMethod.GET, "/customers", "/customers/*").hasAnyRole("MANAGER", "ANALYST", "USER")
+        .antMatchers(HttpMethod.POST, "/customers", "/customers/*").hasRole("MANAGER")
+        .antMatchers(HttpMethod.PUT, "/customers", "/customers/*").hasAnyRole("MANAGER", "ANALYST", "USER")
+        .antMatchers(HttpMethod.GET, "/accounts/*").hasRole("USER")
+        .antMatchers(HttpMethod.POST, "/accounts").hasAnyRole("MANAGER")
+        .antMatchers(HttpMethod.POST, "/accounts/*/transactions").hasRole("USER")
+        .antMatchers(HttpMethod.GET, "/stocks", "/stocks/*").hasRole("USER")
+        .antMatchers(HttpMethod.POST, "/trades").hasRole("USER")
+        .antMatchers(HttpMethod.GET, "/trades", "/trades/*").hasRole("USER")
+        .antMatchers(HttpMethod.PUT, "/trades/*").hasRole("USER")
         .and()
       .formLogin().disable();
   }

@@ -13,9 +13,10 @@ public class Account {
     private int customer_id;
     private double balance;
     private double available_balance;
-    // private List<Transfer> transfers;
 
-    public Account() {}
+    public Account() {
+        this.available_balance = balance;
+    }
 
     public String toString() {
         return String.format(
@@ -28,15 +29,16 @@ public class Account {
     public int getCustomer_id() { return this.customer_id; }
     public double getBalance() { return this.balance; }
     public double getAvailable_balance() { return this.available_balance; }
-    // public Transfer[] getTransfers() { return this.transactions; }
 
     // SETTERS
+    public void setCustomerID(int customer_id) {
+        this.customer_id = customer_id;
+    }
+    
     public void updateBalance(double addBalance) { 
         this.balance += addBalance;
         this.available_balance += addBalance;
     }
     
-    public void setCustomerID(int customer_id) {
-        this.customer_id = customer_id;
-    }
+    
 }

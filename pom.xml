@@ -16,6 +16,10 @@
 
 	<properties>
 		<java.version>11</java.version>
+
+		<!--ACCOUNTS TESTS-->
+		<rest-assured.version>4.3.0</rest-assured.version>
+    	<groovy.version>3.0.2</groovy.version>
 	</properties>
 
 	<dependencies>
@@ -42,6 +46,20 @@
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
 			<version>3.10.3</version>
+		</dependency>
+
+		<!-- lombok -->
+		<dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+    	</dependency>
+
+		<!--JSON Simple-->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 
 		<!-- Security -->
@@ -87,6 +105,36 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1.1</version>
 		</dependency>
+		<!--ACCOUNTS TESTING DEPENDENCIES-->
+
+		<!--JSONPath-->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>json-path</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20200518</version>
+		</dependency>
+
+		<!--REST Assured-->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+
+		<!--XML Path-->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>xml-path</artifactId>
+			<version>4.3.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

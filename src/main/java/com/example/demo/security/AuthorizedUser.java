@@ -7,7 +7,12 @@ import com.example.demo.user.User;
 public class AuthorizedUser {
   private User user;
   public AuthorizedUser() {
-    this.user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+      this.user = null;
+    } else {
+      this.user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+    
   }
   public User getUser() { return this.user; }
   public boolean isManager() {
