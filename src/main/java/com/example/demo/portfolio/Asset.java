@@ -32,7 +32,6 @@ public class Asset {
         this.code = code;
         this.quantity = quantity;
         this.avg_price = avg_price;
-        this.current_price = current_price;
         this.value = current_price * quantity;
     }
 }
