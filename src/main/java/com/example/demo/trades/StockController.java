@@ -53,6 +53,15 @@ public class StockController {
         return stocks;
     }
 
+    // private void changesDB() {
+    //     Iterable<Stock> stocks = this.stocksRepository.findAll();
+    //     for (Stock stock : stocks) {
+    //         stock.setBid();
+    //         stock.setAsk();
+    //         this.stocksRepository.save(stock);
+    //     }
+    // }
+
     @Autowired
     public StockController(StocksRepository stocksRepository) {
         this.stocksRepository = stocksRepository;

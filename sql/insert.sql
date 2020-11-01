@@ -12,4 +12,4 @@ insert into user (id,nric,phone,address,username,password,authorities,active,ful
 
 -- insert into account (id, customer_id, balance, available_balance) values (12346, 123457, 100000.0, 100000.0);
 
--- insert into stock (id, symbol, last_price, bid_volume, bid, ask_volume, ask) values (1, "A17U", 3.28, 20000, 3.26, 20000, 3.29);
+insert into stock (id, symbol, last_price, bid_volume, bid, ask_volume, ask) values (1, "A17U", 3.28, 20000, 3.26, 20000, 3.29);
