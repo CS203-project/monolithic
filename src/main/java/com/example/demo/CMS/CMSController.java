@@ -24,21 +24,13 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-// JSON imports
-// import org.json.simple.JSONObject;
-// import org.json.simple.JSONArray;
-// import org.json.simple.parser.ParseException;
-// import org.json.simple.parser.JSONParser;
-
 import org.springframework.beans.factory.annotation.Autowired;   
-
 import java.lang.IllegalArgumentException;
 
 import com.example.demo.config.*;
@@ -68,49 +60,38 @@ public class CMSController {
     */
 
     @GetMapping(path="/contents/{id}")
-    public @ResponseBody Content getContent(@PathVariable int id){
-        return cms.getContent(id);
+    @ResponseStatus(HttpStatus.OK)
+    public @ResponseBody Content getContent(@PathVariable int id) throws NotFoundException {
+        AuthorizedUser context = new AuthorizedUser();
+        return cms.getContent(id, context.isManager());
     }
 
 
     @GetMapping(path="/contents")
+    @ResponseStatus(HttpStatus.OK)
     public @ResponseBody List<Content> getContents() {
-        AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst())
-            return cms.listContent();
-        else 
-            return null;
+        return cms.listContent();
     }
 
     @PostMapping(path="/contents")
+    @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody Content addContent (@RequestBody Content content) {
         AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst())
-            return cms.addContent(content);
-        else 
-            return null;
+        return cms.addContent(content, context.isManager());
     }
 
-    @PutMapping("/content/{id}")
-    public Content updateContent(@PathVariable int id, @RequestBody Content newContentInfo){
+    @PutMapping("/contents/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public @ResponseBody Content updateContent(@PathVariable int id, @RequestBody Content newContentInfo) throws NotFoundException {
         AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst())
-            return cms.updateContent(id, newContentInfo);
-        else 
-            return null;
+        return cms.updateContent(id, newContentInfo, context.isManager());
     }
 
 
-    @DeleteMapping("/content/{id}")
-    public void deleteBook(@PathVariable int id){
-        AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst()){
-            try{
-                cms.deleteContent(id);
-            } catch(EmptyResultDataAccessException e) {
-                throw new ContentNotFoundException(id);
-            }
-        }
+    @DeleteMapping("/contents/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public @ResponseBody void deleteBook(@PathVariable int id) throws NotFoundException {
+        cms.deleteContent(id);
     }
     
 
