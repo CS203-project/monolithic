@@ -45,93 +45,93 @@ import com.example.demo.config.*;
 import com.example.demo.security.*;
 
 
-@RestController
-public class CMSController {
+// @RestController
+// public class CMSController {
 
     
-    private CMSService cms;
+//     private CMSService cms;
 
-   // private JSONObject userObj;
+//    // private JSONObject userObj;
     
-    @Autowired
-    public CMSController(CMSService cms) {
-        this.cms = cms;
-    }
+//     @Autowired
+//     public CMSController(CMSService cms) {
+//         this.cms = cms;
+//     }
 
-    /*  
-    CHECK PERMISSIONS
-    According to roles:
-        ANALYST CAN CREATE, GET, UPDATE, DELETE
-        MANAGER CAN CREATE, GET, UPDATE, DELETE, APPROVE
-        --> only approved content can be displayed <--
-        USER CAN ONLY GET CONTENT
-    */
+//     /*  
+//     CHECK PERMISSIONS
+//     According to roles:
+//         ANALYST CAN CREATE, GET, UPDATE, DELETE
+//         MANAGER CAN CREATE, GET, UPDATE, DELETE, APPROVE
+//         --> only approved content can be displayed <--
+//         USER CAN ONLY GET CONTENT
+//     */
 
-    @GetMapping(path="/contents/{id}")
-    public @ResponseBody Content getContent(@PathVariable int id){
-        return cms.getContent(id);
-    }
-
-
-    @GetMapping(path="/contents")
-    public @ResponseBody List<Content> getContents() {
-        AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst())
-            return cms.listContent();
-        else 
-            return null;
-    }
-
-    @PostMapping(path="/contents")
-    public @ResponseBody Content addContent (@RequestBody Content content) {
-        AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst())
-            return cms.addContent(content);
-        else 
-            return null;
-    }
-
-    @PutMapping("/content/{id}")
-    public Content updateContent(@PathVariable int id, @RequestBody Content newContentInfo){
-        AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst())
-            return cms.updateContent(id, newContentInfo);
-        else 
-            return null;
-    }
+//     @GetMapping(path="/contents/{id}")
+//     public @ResponseBody Content getContent(@PathVariable int id){
+//         return cms.getContent(id);
+//     }
 
 
-    @DeleteMapping("/content/{id}")
-    public void deleteBook(@PathVariable int id){
-        AuthorizedUser context = new AuthorizedUser();
-        if (context.isManager() || context.isAnalyst()){
-            try{
-                cms.deleteContent(id);
-            } catch(EmptyResultDataAccessException e) {
-                throw new ContentNotFoundException(id);
-            }
-        }
-    }
+//     @GetMapping(path="/contents")
+//     public @ResponseBody List<Content> getContents() {
+//         AuthorizedUser context = new AuthorizedUser();
+//         if (context.isManager() || context.isAnalyst())
+//             return cms.listContent();
+//         else 
+//             return null;
+//     }
+
+//     @PostMapping(path="/contents")
+//     public @ResponseBody Content addContent (@RequestBody Content content) {
+//         AuthorizedUser context = new AuthorizedUser();
+//         if (context.isManager() || context.isAnalyst())
+//             return cms.addContent(content);
+//         else 
+//             return null;
+//     }
+
+//     @PutMapping("/content/{id}")
+//     public Content updateContent(@PathVariable int id, @RequestBody Content newContentInfo){
+//         AuthorizedUser context = new AuthorizedUser();
+//         if (context.isManager() || context.isAnalyst())
+//             return cms.updateContent(id, newContentInfo);
+//         else 
+//             return null;
+//     }
+
+
+//     @DeleteMapping("/content/{id}")
+//     public void deleteBook(@PathVariable int id){
+//         AuthorizedUser context = new AuthorizedUser();
+//         if (context.isManager() || context.isAnalyst()){
+//             try{
+//                 cms.deleteContent(id);
+//             } catch(EmptyResultDataAccessException e) {
+//                 throw new ContentNotFoundException(id);
+//             }
+//         }
+//     }
     
 
-    // @PutMapping("/content/{id}")
-    // public Content isApproved(@PathVariable int id, boolean approvalValue){
-    //     AuthorizedUser context = new AuthorizedUser();
-    //     if (context.isManager()) {
-    //         Optional<Content> contentEntity = cms.findById(id);
-    //         Content content;
-    //         if (!contentEntity.isPresent()) {
-    //             throw new ContentNotFoundException(id);
-    //         } else {
-    //             content = contentEntity.get();
-    //             content.setApproved(approvalValue);
-    //         }
-    //         return content;
-    //    }
-    //    else
-    //         return null;
-    // }
+//     // @PutMapping("/content/{id}")
+//     // public Content isApproved(@PathVariable int id, boolean approvalValue){
+//     //     AuthorizedUser context = new AuthorizedUser();
+//     //     if (context.isManager()) {
+//     //         Optional<Content> contentEntity = cms.findById(id);
+//     //         Content content;
+//     //         if (!contentEntity.isPresent()) {
+//     //             throw new ContentNotFoundException(id);
+//     //         } else {
+//     //             content = contentEntity.get();
+//     //             content.setApproved(approvalValue);
+//     //         }
+//     //         return content;
+//     //    }
+//     //    else
+//     //         return null;
+//     // }
 
 
-}
+// }
 
