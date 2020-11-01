@@ -25,7 +25,7 @@ public class PortfolioController {
         this.pfRepository = pfRepository;
     }
 
-    @PostMapping("/portfolio")
+    @GetMapping("/portfolio")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Portfolio getPortfolio(int customer_id) {
         Optional<Portfolio> pfEntity = pfRepository.findById(customer_id);
@@ -35,4 +35,5 @@ public class PortfolioController {
         }
         return pfEntity.get();
     }
+
 }

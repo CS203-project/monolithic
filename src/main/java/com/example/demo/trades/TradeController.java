@@ -26,6 +26,8 @@ import com.example.demo.accounts.Account;
 import com.example.demo.trades.StocksRepository;
 import com.example.demo.trades.Stock;
 import com.example.demo.trades.StockNotFoundException;
+import com.example.demo.portfolio.AssetRepository;
+import com.example.demo.portfolio.Asset;
 
 import java.util.Optional;
 import java.util.List;
@@ -36,12 +38,14 @@ public class TradeController {
     private TradeService tradeService;
     private AccountsRepository accRepository;
     private StocksRepository stocksRepository;
+    private AssetRepository assetRepository;
 
     @Autowired
-    public TradeController(TradeService tradeService, AccountsRepository accRepository, StocksRepository stocksRepository) {
+    public TradeController(TradeService tradeService, AccountsRepository accRepository, StocksRepository stocksRepository, AssetRepository assetRepository) {
         this.tradeService = tradeService;
         this.accRepository = accRepository;
         this.stocksRepository = stocksRepository;
+        this.assetRepository = assetRepository;
     }
 
     // Helper function
@@ -88,6 +92,11 @@ public class TradeController {
         return true;
     }
 
+    // Helper function
+    private Asset addAsset(Asset asset) {
+        return assetRepository.save(asset);
+    }
+
     @PostMapping("/trades")
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
@@ -123,7 +132,9 @@ public class TradeController {
 
             stock.setLast_price(stock.getAsk());
 
-            // REFLECT TO PORTFOLIO
+            // Add to portfolio
+            Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
+            addAsset(asset);
 
         } else if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
             // Market orders - filled immediately - extract to method fillMarketOrder
@@ -145,7 +156,9 @@ public class TradeController {
 
             stock.setLast_price(stock.getAsk());
 
-            // REFLECT TO PORTFOLIO
+            // Add to portfolio
+            Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
+            addAsset(asset);
         }
 
         // PROCESS LIMIT ORDERS
