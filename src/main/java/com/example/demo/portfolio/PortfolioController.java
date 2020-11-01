@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
+
 @RestController
 public class PortfolioController {
     private PortfolioRepository pfRepository;
@@ -26,6 +28,11 @@ public class PortfolioController {
     @PostMapping("/portfolio")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Portfolio getPortfolio(int customer_id) {
-        return null; //temp
+        Optional<Portfolio> pfEntity = pfRepository.findById(customer_id);
+        if (!pfEntity.isPresent()) {
+            System.out.println("DANGER");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return pfEntity.get();
     }
 }
