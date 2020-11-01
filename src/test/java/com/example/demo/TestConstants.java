@@ -56,7 +56,7 @@ public class TestConstants {
     // public static String baseURL = "https://yourdomainname.com/api";
     public static String baseURL = "https://localhost:8443";
 
-    // the below variables specify various enpoints of your api
+    // the below variables speciffy various enpoints of your api
     // together with description of functionalities provided by each endpoint
     ///////////////////////////////////////////////////////////
     
