@@ -28,6 +28,7 @@ import java.lang.IllegalArgumentException;
 import com.example.demo.user.UserRepository;
 import com.example.demo.config.ForbiddenException;
 import com.example.demo.config.BadRequestException;
+import com.example.demo.config.NotFoundException;
 import com.example.demo.security.AuthorizedUser;
 
 @RestController
@@ -56,13 +57,8 @@ public class UserController {
   @RequestMapping(value = "/customers", method = RequestMethod.POST)
   @ResponseStatus(HttpStatus.CREATED)
   public @ResponseBody User addNewUser (@Valid @RequestBody User user) throws BadRequestException {
-    System.out.println("POST /customers | " + user);
-    User search = this.US.findByUsername(user.getUsername());
-    if (search != null) throw new BadRequestException("User already exists");
-
-    String passwordHash = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12));
-    user.setPassword(passwordHash);
-    return this.US.save(user);
+    System.out.println("POST /customers | " + user);    // BadRequestException 
+    return this.US.createUser(user);
   }
 
   /*
@@ -71,19 +67,14 @@ public class UserController {
   * @PathVariable     ID of user searched
   * @ResponseBody     User Object Found
   * @ResponseStatus   200 OK
-  * DETAILS           Return user if exists, unauthorized (403 FORBIDDEN), invalid ID (400 BAD REQUEST)
+  * DETAILS           Return user if exists, unauthorized (403 FORBIDDEN), invalid ID (404 NOT FOUND)
   */
   @RequestMapping(value = "/customers/{id}", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody User getUser (@PathVariable int id) throws ForbiddenException, BadRequestException {
+  public @ResponseBody User getUser (@PathVariable int id) throws ForbiddenException, NotFoundException {
     System.out.println("GET /customers | " + id);
     AuthorizedUser context = new AuthorizedUser();
-
-    if (!context.isManager() && (id != context.getUser().getId().intValue())) throw new ForbiddenException("Unauthorized to view another user");
-  
-    User search = this.US.findById(id);
-    if (search == null) throw new BadRequestException("Searched User does not exists");
-    return search;
+    return this.US.getUser(id, context.getUser(), context.isManager()); // ForbiddenException, NotFoundException 
   }
 
   /*
@@ -96,19 +87,9 @@ public class UserController {
   */
   @RequestMapping(value = "/customers/{id}", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody User editUser (@Valid @RequestBody User user, @PathVariable int id) throws BadRequestException, ForbiddenException {
+  public @ResponseBody User editUser (@Valid @RequestBody User user, @PathVariable int id) throws NotFoundException, ForbiddenException {
     System.out.println("PUT /customers | " + user);
     AuthorizedUser context = new AuthorizedUser();
-
-    User search = this.US.findById(id);
-    if (search == null) throw new BadRequestException("Edited User does not exists");
-    
-    if (context.isManager()) return this.US.save(user);
-    if (search.getId() != context.getUser().getId()) throw new ForbiddenException("Unauthorized to edit another user");
-    String passwordHash = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12));
-    search.setAddress(user.getAddress());
-    search.setPassword(passwordHash);
-    search.setPhone(user.getPhone());
-    return this.US.save(search);
+    return this.US.editUser(user, id, context.getUser(), context.isManager()); // ForbiddenException, NotFoundException 
   }
 }
