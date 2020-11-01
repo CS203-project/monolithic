@@ -14,7 +14,9 @@ public class Account {
     private double balance;
     private double available_balance;
 
-    public Account() {}
+    public Account() {
+        this.available_balance = balance;
+    }
 
     public String toString() {
         return String.format(
