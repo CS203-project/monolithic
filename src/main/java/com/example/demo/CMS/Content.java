@@ -8,26 +8,16 @@ import javax.persistence.Id;
 import javax.persistence.Column;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
 
 @Entity
-@Getter
-@Setter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode
 public class Content {
-
     @Id @GeneratedValue(strategy=GenerationType.AUTO)
-    @Column(name="content_id")
     private int id;
 
     private String title;
     private String summary;
     private String content;
     private String link;
-    @JsonProperty
     private boolean approved;
 
     // GETTERS
@@ -39,6 +29,7 @@ public class Content {
     public boolean getApproved() { return this.approved; }
 
     // SETTERS
+    public void setId(int id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setSummary(String summary) { this.summary = summary; }
     public void setContent(String content) { this.content = content; }
@@ -46,9 +37,6 @@ public class Content {
     public void setApproved(boolean approval) { this.approved = approval; }
 
     public String toString() {
-        if (!this.approved) {
-            return "Content has not been approved.";
-        }
-        return title + "\n" + summary + "\n" + content;
+        return title + " || " + summary + " || " + content + " || " + link + " || " + approved;
     }
 }
