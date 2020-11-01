@@ -28,18 +28,16 @@ public class Portfolio {
         // this.assets = assets;
     }
 
-    // public void addAsset(Asset asset) {
-    //     if (asset.getAssetId().getCustomerId() != customerId)
-    //         throw new RuntimeException();
-    //     assets.add(asset);
-    // }
+    public void addAsset(Asset asset) {
+        assets.add(asset); // manually update db?
+    }
 
-    // public double getUnrealizedGainLoss() {
-    //     double gainLoss = 0;
-    //     for (Asset a : assets)
-    //         gainLoss += a.getGain_loss();
-    //     return gainLoss;
-    // }
+    public double getUnrealizedGainLoss() {
+        double gainLoss = 0;
+        for (Asset a : assets)
+            gainLoss += a.getGain_loss();
+        return gainLoss;
+    }
 
     // public double getRealizedGainLoss()
 }

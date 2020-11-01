@@ -28,5 +28,11 @@ public class Asset {
     @JoinColumn(name = "customer_id")
     private Portfolio portfolio;
 
-    public Asset() {}
+    public Asset(String code, int quantity, double avg_price) {
+        this.code = code;
+        this.quantity = quantity;
+        this.avg_price = avg_price;
+        this.current_price = current_price;
+        this.value = current_price * quantity;
+    }
 }
