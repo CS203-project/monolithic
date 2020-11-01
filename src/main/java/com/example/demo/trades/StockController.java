@@ -71,8 +71,8 @@ public class StockController {
     @GetMapping(path="/stocks")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Iterable<Stock> getStocks() {
-        User currentUser;
-        AuthorizedUser context = new AuthorizedUser();
+        // User currentUser;
+        // AuthorizedUser context = new AuthorizedUser();
         return stocksRepository.findAll();
     }
 

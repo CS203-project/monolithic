@@ -37,42 +37,40 @@ public class TradeController {
     private AccountsRepository accRepository;
     private StocksRepository stocksRepository;
 
-    // either Stocks repository or a list of stocks available to trade
-
     @Autowired
-    public TradeController(TradeService tradeService, AccountsRepository accRepository) {
+    public TradeController(TradeService tradeService, AccountsRepository accRepository, StocksRepository stocksRepository) {
         this.tradeService = tradeService;
         this.accRepository = accRepository;
+        this.stocksRepository = stocksRepository;
     }
 
+    // Helper function
     private Account getAccountForTrade(int account_id) {
-        Account accountEntity = accRepository.findById(account_id).orElseThrow();
-        // Account account;
-        // if (!accountEntity.isPresent()) {
-        //     throw new AccountNotFoundException(account_id);
-        // } else {
-        //     account = accountEntity.get();
-        // }
+        Optional<Account> accountEntity = accRepository.findById(account_id);
+        Account account;
+        if (!accountEntity.isPresent()) {
+            throw new AccountNotFoundException(account_id);
+        } else {
+            account = accountEntity.get();
+        }
 
-        // Account account = accountEntity.get();
-
-        return accountEntity;
+        return account;
     }
 
+    // Helper function
     private Stock getStockForTrade(String stockSymbol) {
-        Stock stockEntity = stocksRepository.findBySymbol(stockSymbol).orElseThrow();
-        // Stock stock;
-        // if (!stockEntity.isPresent()) {
-        //     throw new StockNotFoundException(stockSymbol);
-        // } else {
-        //     stock = stockEntity.get();
-        // }
+        Optional<Stock> stockEntity = stocksRepository.findBySymbol(stockSymbol);
+        Stock stock;
+        if (!stockEntity.isPresent()) {
+            throw new StockNotFoundException(stockSymbol);
+        } else {
+            stock = stockEntity.get();
+        }
 
-        // Stock stock = stockEntity.get();
-
-        return stockEntity;
+        return stock;
     }
 
+    // Helper function
     private boolean processTransaction(Trade trade) {
         int account_id = trade.getAccount_id();
         int customer_id = trade.getCustomer_id();
@@ -106,7 +104,7 @@ public class TradeController {
         Stock stock = getStockForTrade(stockSymbol);
         
         if ((trade.getBid() == 0.0 || trade.getAsk() == 0.0) && stock.getAsk_volume() < trade.getQuantity()) {
-            // Market order but insufficient volume
+            // Market order but insufficient volume - partial fill
 
             trade.setStatus("partial-filled");
             trade.setDate(Instant.now());
@@ -122,6 +120,8 @@ public class TradeController {
                     trade.setFilled_quantity(canFill);
                 }
             }
+
+            stock.setLast_price(stock.getAsk());
 
             // REFLECT TO PORTFOLIO
 
@@ -143,12 +143,14 @@ public class TradeController {
                 }
             }
 
+            stock.setLast_price(stock.getAsk());
+
             // REFLECT TO PORTFOLIO
         }
 
         // PROCESS LIMIT ORDERS
         
-        return null;
+        return tradeService.addTrade(trade);
     }
 
     @GetMapping("/trades/{id}")

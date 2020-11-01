@@ -14,7 +14,7 @@
 //         The volume/bid/ask info below should reflect the actual trades in your API.
 //         Note that there can be many different trades with different bid/ask values for a stock,
 //         your API should only show info for the best trade (best price, or if the prices are 
-//         the same then trade submitted earlier has the priority).
+//         the same then trade submitted earlier has the priority). -> IMPLEMENT LAST
         
 //         The last_price should reflect the actual price for the last trade done in your API.
 //         If no trade has been done, the last_price can be obtained from an external data source.
