@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Optional;
 import java.util.Arrays;
 
 @EnableWebSecurity
@@ -51,6 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.GET, "/accounts/*").hasRole("USER")
         .antMatchers(HttpMethod.POST, "/accounts").hasAnyRole("MANAGER")
         .antMatchers(HttpMethod.POST, "/accounts/*/transactions").hasRole("USER")
+        .antMatchers(HttpMethod.GET, "/stocks", "/stocks/*").hasRole("USER")
         .antMatchers(HttpMethod.POST, "/trades").hasRole("USER")
         .antMatchers(HttpMethod.GET, "/trades", "/trades/*").hasRole("USER")
         .antMatchers(HttpMethod.PUT, "/trades/*").hasRole("USER")
