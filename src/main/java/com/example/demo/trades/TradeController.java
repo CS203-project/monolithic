@@ -34,7 +34,7 @@ import java.util.List;
 
 @RestController
 public class TradeController {
-    
+
     private TradeService tradeService;
     private AccountsRepository accRepository;
     private StocksRepository stocksRepository;
@@ -48,17 +48,38 @@ public class TradeController {
         this.assetRepository = assetRepository;
     }
 
-    // Helper function
-    private Account getAccountForTrade(int account_id) {
-        Optional<Account> accountEntity = accRepository.findById(account_id);
-        Account account;
-        if (!accountEntity.isPresent()) {
-            throw new AccountNotFoundException(account_id);
-        } else {
-            account = accountEntity.get();
+    @PostMapping("/trades")
+    @ResponseStatus(HttpStatus.CREATED)
+    public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
+
+        // If neither buy or sell, invalid trade
+        if (!trade.getAction().equals("buy") && !trade.getAction().equals("sell")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        return account;
+        String stockSymbol = trade.getSymbol();
+        Stock stock = getStockForTrade(stockSymbol);
+
+        // Check type of order
+        if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
+            processMarketOrder(trade);
+        } else {
+            processLimitOrder(trade);
+        }
+
+        // proceed to trade matching?
+        return trade; // temp
+    }
+
+    private void processMarketOrder(Trade trade) {
+
+    }
+
+    private void processLimitOrder(Trade trade) {
+
     }
 
     // Helper function
@@ -72,100 +93,6 @@ public class TradeController {
         }
 
         return stock;
-    }
-
-    // Helper function
-    private boolean processTransaction(Trade trade) {
-        int account_id = trade.getAccount_id();
-        int customer_id = trade.getCustomer_id();
-
-        Account account = getAccountForTrade(account_id);
-        if (account.getCustomer_id() != customer_id) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-
-        if (account.getBalance() < trade.getAvg_price() * trade.getFilled_quantity()) {
-            return false;
-        }
-
-        account.updateBalance(-(trade.getAvg_price() * trade.getFilled_quantity()));
-        return true;
-    }
-
-    // Helper function
-    private Asset addAsset(Asset asset) {
-        return assetRepository.save(asset);
-    }
-
-    @PostMapping("/trades")
-    @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
-
-        User currentUser;
-        AuthorizedUser context = new AuthorizedUser();
-        currentUser = context.getUser();
-
-        if (!trade.getAction().equals("buy") && !trade.getAction().equals("sell")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-
-        String stockSymbol = trade.getSymbol();
-        Stock stock = getStockForTrade(stockSymbol);
-        
-        if ((trade.getBid() == 0.0 || trade.getAsk() == 0.0) && stock.getAsk_volume() < trade.getQuantity()) {
-            // Market order but insufficient volume - partial fill
-
-            trade.setStatus("partial-filled");
-            trade.setDate(Instant.now());
-            trade.setFilled_quantity(stock.getAsk_volume());
-            trade.setAvg_price(stock.getAsk());
-
-            if(!processTransaction(trade)) {
-                // insufficient balance, partially fill
-                Account acc = getAccountForTrade(trade.getAccount_id());
-                int canFill = (int)(acc.getBalance() / stock.getAsk());
-
-                if (canFill > 0) {
-                    trade.setFilled_quantity(canFill);
-                }
-            }
-
-            stock.setLast_price(stock.getAsk());
-            stock.setBid_volume(stock.getBid_volume() - trade.getFilled_quantity());
-
-            // Add to portfolio
-            Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
-            addAsset(asset);
-
-        } else if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
-            // Market orders - filled immediately - extract to method fillMarketOrder
-
-            trade.setStatus("filled");
-            trade.setDate(Instant.now());
-            trade.setFilled_quantity(trade.getQuantity());
-            trade.setAvg_price(stock.getAsk());
-
-            if(!processTransaction(trade)) {
-                // insufficient balance, partially fill
-                Account acc = getAccountForTrade(trade.getAccount_id());
-                int canFill = (int)(acc.getBalance() / stock.getAsk());
-
-                if (canFill > 0) {
-                    trade.setFilled_quantity(canFill);
-                }
-            }
-
-            stock.setLast_price(stock.getAsk());
-            stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
-
-            // Add to portfolio
-            Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
-            addAsset(asset);
-        }
-
-        // PROCESS LIMIT ORDERS
-        
-        return tradeService.addTrade(trade);
     }
 
     @GetMapping("/trades/{id}")

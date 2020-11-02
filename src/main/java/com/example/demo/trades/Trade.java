@@ -35,4 +35,11 @@ public class Trade {
     private String status;
 
     public Trade() {}
+
+    public Trade(String action, String symbol, int quantity, String status) {
+        this.action = action;
+        this.symbol = symbol;
+        this.quantity = quantity;
+        this.status = status;
+    }
 }
