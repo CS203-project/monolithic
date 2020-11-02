@@ -49,17 +49,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.GET, "/customers", "/customers/*").authenticated()
         .antMatchers(HttpMethod.POST, "/customers", "/customers/*").hasRole("MANAGER")
         .antMatchers(HttpMethod.PUT, "/customers", "/customers/*").authenticated()
+
         .antMatchers(HttpMethod.GET, "/contents", "/contents/*").authenticated()
         .antMatchers(HttpMethod.DELETE, "/contents", "/contents/*").hasAnyRole("MANAGER","ANALYST")
         .antMatchers(HttpMethod.POST, "/contents", "/contents/*").hasAnyRole("MANAGER", "ANALYST")
         .antMatchers(HttpMethod.PUT, "/contents", "/contents/*").hasAnyRole("MANAGER", "ANALYST")
+
         .antMatchers(HttpMethod.GET, "/accounts/*").hasRole("USER")
         .antMatchers(HttpMethod.POST, "/accounts").hasRole("MANAGER")
         .antMatchers(HttpMethod.POST, "/accounts/*/transactions").hasRole("USER")
+
         .antMatchers(HttpMethod.GET, "/stocks", "/stocks/*").hasRole("USER")
         .antMatchers(HttpMethod.POST, "/trades").hasRole("USER")
         .antMatchers(HttpMethod.GET, "/trades", "/trades/*").hasRole("USER")
         .antMatchers(HttpMethod.PUT, "/trades/*").hasRole("USER")
+        .antMatchers(HttpMethod.GET, "/portfolio").hasRole("USER")
         .and()
       .formLogin().disable();
   }

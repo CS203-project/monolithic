@@ -12,9 +12,9 @@ public class AuthorizedUser {
     } else {
       this.user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-    
   }
   public User getUser() { return this.user; }
+  public int getId() { return this.user.getId(); }
   public boolean isManager() {
     boolean isManager = false;
     for (GrantedAuthority authority : this.user.getAuthorities()) {

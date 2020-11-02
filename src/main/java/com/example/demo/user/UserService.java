@@ -10,14 +10,18 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import com.example.demo.config.ForbiddenException;
 import com.example.demo.config.BadRequestException;
 import com.example.demo.config.NotFoundException;
+import com.example.demo.portfolio.PortfolioRepository;
+import com.example.demo.portfolio.Portfolio;
 
 @Service
 public class UserService {
   private UserRepository UR;
+  private PortfolioRepository PR;
   
   @Autowired
-  public UserService(UserRepository UR) {
+  public UserService(UserRepository UR, PortfolioRepository PR) {
     this.UR = UR;
+    this.PR = PR;
   }
   
   public Iterable<User> findAll() { return this.UR.findAll(); }
@@ -45,7 +49,12 @@ public class UserService {
     if (search.isPresent()) throw new BadRequestException("User already exists");
     String passwordHash = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12));
     user.setPassword(passwordHash);
-    return this.UR.save(user);
+
+    // create portfolio
+    User saved = this.UR.save(user);
+    Portfolio portfolio = new Portfolio(saved.getId());
+    this.PR.save(portfolio);
+    return saved;
   }
   
   public User editUser(User edits, int id, User user, boolean isManager) throws NotFoundException, ForbiddenException {
