@@ -17,8 +17,8 @@ public class MarketMaker {
 
     public MarketMaker() {}
 
-    // @Scheduled(cron="* 0 0/1 * * MON-FRI")
-    @Scheduled(cron="* * * * * *")
+    // For testing: @Scheduled(cron="* * * * * *")
+    @Scheduled(cron="* 0 0/1 * * MON-FRI")
     public void updateEveryHour() {
         timestamp = Instant.now();
     }
