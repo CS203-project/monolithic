@@ -51,9 +51,16 @@ public class TradeController {
     @PostMapping("/trades")
     @ResponseStatus(HttpStatus.CREATED)
     public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
+
+        // Authentication
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
+
+        // Unauthorized
+        // if (currentUser.getId() != trade.getCustomer_id()) {
+        //     throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        // }
 
         // If neither buy or sell, invalid trade
         if (!trade.getAction().equals("buy") && !trade.getAction().equals("sell")) {
@@ -62,24 +69,54 @@ public class TradeController {
 
         String stockSymbol = trade.getSymbol();
         Stock stock = getStockForTrade(stockSymbol);
+        Account account = getAccountForTrade(trade.getAccount_id());
 
         // Check type of order
         if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
-            processMarketOrder(trade);
+            processMarketOrder(trade, stock, account);
         } else {
-            processLimitOrder(trade);
+            processLimitOrder(trade, stock, account);
         }
 
         // proceed to trade matching?
         return trade; // temp
     }
 
-    private void processMarketOrder(Trade trade) {
+    private void processMarketOrder(Trade trade, Stock stock, Account account) {
+
+        String action = trade.getAction();
+
+        if (action.equals("buy")) {
+
+            double available_balance = account.getAvailable_balance();
+            double stockPrice = stock.getAsk();
+            int tradeQuantity = trade.getQuantity();
+            if (!verifyPurchaseAbility(available_balance, stockPrice, tradeQuantity)) {
+                System.out.println("Insufficient funds for purchase!");
+                return;
+            }
+
+            // trade matching
+            
+        } else if (action.equals("sell")) {
+
+        }
+
+        return;
+    }
+
+    private void processLimitOrder(Trade trade, Stock stock, Account account) {
+        // remember to process buy/sell as well
+    }
+
+    private void reflectInPortfolio(Trade trade) {
 
     }
 
-    private void processLimitOrder(Trade trade) {
-
+    // Helper function
+    private boolean verifyPurchaseAbility(double balance, double price, int quantity) {
+        if (balance < (price * quantity)) return false;
+        return true;
     }
 
     // Helper function
@@ -93,6 +130,19 @@ public class TradeController {
         }
 
         return stock;
+    }
+
+    // Helper function
+    private Account getAccountForTrade(int account_id) {
+        Optional<Account> accountEntity = accRepository.findById(account_id);
+        Account account;
+        if (!accountEntity.isPresent()) {
+            throw new AccountNotFoundException(account_id);
+        } else {
+            account = accountEntity.get();
+        }
+
+        return account;
     }
 
     @GetMapping("/trades/{id}")

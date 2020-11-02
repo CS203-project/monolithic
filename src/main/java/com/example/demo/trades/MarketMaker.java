@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
+import java.util.Random;
 
 @Configuration
 @EnableScheduling
@@ -54,9 +55,13 @@ public class MarketMaker {
     // *** one pair (buy and sell) for each stock listed at the bid and ask price, respectively.
     // *** The volumes of these trades can be set to a fixed value, say 20000.
     public HashMap<String, List<Trade>> autoCreate() {
+
         // map of trade pairs - key: symbol, value: list of trades (2 trades)
         HashMap<String, List<Trade>> tradePairsBySymbol = new HashMap<>();
         if (!isMarketOpen()) return tradePairsBySymbol; // return empty map
+
+        Random random = new Random();
+        double pointDifference = random.nextDouble();
 
         List<Stock> stocks = stocksRepo.findAll();
 
@@ -66,10 +71,9 @@ public class MarketMaker {
             Trade buy = new Trade("buy", symbol, 20000, "open");
             Trade sell = new Trade("sell", symbol, 20000, "open");
 
-            double stock_bid_price = stock.getBid();
-            double stock_ask_price = stock.getAsk();
-            buy.setBid(stock_ask_price);
-            sell.setAsk(stock_bid_price);
+            double stock_last_price = stock.getLast_price();
+            buy.setBid(stock_last_price - pointDifference);
+            sell.setAsk(stock_last_price + pointDifference);
 
             List<Trade> tradePairs = new ArrayList<>();
             tradePairs.add(buy);
