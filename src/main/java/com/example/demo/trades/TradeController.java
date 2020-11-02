@@ -131,6 +131,7 @@ public class TradeController {
             }
 
             stock.setLast_price(stock.getAsk());
+            stock.setBid_volume(stock.getBid_volume() - trade.getFilled_quantity());
 
             // Add to portfolio
             Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
@@ -155,6 +156,7 @@ public class TradeController {
             }
 
             stock.setLast_price(stock.getAsk());
+            stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
 
             // Add to portfolio
             Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
