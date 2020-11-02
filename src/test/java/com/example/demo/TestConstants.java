@@ -169,7 +169,6 @@ public class TestConstants {
      */
     public static String accountURL = baseURL + "/accounts";
 
-
     /*
      *  ROLE_USER only: get all stock info, or one stock info at stockURL + "/{symbol}"
      * 
@@ -224,7 +223,6 @@ public class TestConstants {
         
         *** These trades are referred to as the market maker's trades - to create liquidity in the market.
         *** The customers' trades can then be matched with these market maker's trades.
-
     */
     public static String stockURL = baseURL + "/stocks";
 

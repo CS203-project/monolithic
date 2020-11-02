@@ -13,7 +13,7 @@ import java.lang.IllegalStateException;
 @ControllerAdvice
 public class GlobalControllerExceptionHandler {
   @ExceptionHandler
-  void handleIllegalArgumentException(MethodArgumentNotValidException e, HttpServletResponse response) throws IOException {
+  void handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletResponse response) throws IOException {
     response.resetBuffer();
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     response.setHeader("Content-Type", "application/json");
@@ -40,7 +40,7 @@ public class GlobalControllerExceptionHandler {
   }
 
   @ExceptionHandler
-  void handleIllegalStateException(BadRequestException e, HttpServletResponse response) throws IOException {
+  void handleBadRequestException(BadRequestException e, HttpServletResponse response) throws IOException {
     response.resetBuffer();
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     response.setHeader("Content-Type", "application/json");
@@ -49,7 +49,7 @@ public class GlobalControllerExceptionHandler {
   }
 
   @ExceptionHandler
-  void handleIllegalStateException(ForbiddenException e, HttpServletResponse response) throws IOException {
+  void handleForbiddenException(ForbiddenException e, HttpServletResponse response) throws IOException {
     response.resetBuffer();
     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
     response.setHeader("Content-Type", "application/json");
@@ -58,7 +58,7 @@ public class GlobalControllerExceptionHandler {
   }
   
   @ExceptionHandler
-  void handleIllegalStateException(NotFoundException e, HttpServletResponse response) throws IOException {
+  void handleNotFoundException(NotFoundException e, HttpServletResponse response) throws IOException {
     response.resetBuffer();
     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     response.setHeader("Content-Type", "application/json");

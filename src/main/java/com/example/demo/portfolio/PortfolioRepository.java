@@ -2,10 +2,13 @@ package com.example.demo.portfolio;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.CrudRepository;
+import com.example.demo.user.User;
+import java.util.Optional;
 
-@Repository
-public interface PortfolioRepository extends JpaRepository<Portfolio, Integer> {
-    // public List<Asset> findAssetByCustomerId(int id);
+// This will be AUTO IMPLEMENTED by Spring into a Bean called userRepository
+// CRUD refers Create, Read, Update, Delete
+
+public interface PortfolioRepository extends CrudRepository<Portfolio, Integer> {
+    
 }
