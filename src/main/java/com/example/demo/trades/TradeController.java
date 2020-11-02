@@ -39,13 +39,29 @@ public class TradeController {
     private AccountsRepository accRepository;
     private StocksRepository stocksRepository;
     private AssetRepository assetRepository;
+    private MarketMaker marketMaker;
 
     @Autowired
-    public TradeController(TradeService tradeService, AccountsRepository accRepository, StocksRepository stocksRepository, AssetRepository assetRepository) {
+    public TradeController(MarketMaker marketMaker, TradeService tradeService, AccountsRepository accRepository, StocksRepository stocksRepository, AssetRepository assetRepository) {
         this.tradeService = tradeService;
         this.accRepository = accRepository;
         this.stocksRepository = stocksRepository;
         this.assetRepository = assetRepository;
+        this.marketMaker = marketMaker;
+    }
+
+    @GetMapping("/trades/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public @ResponseBody Trade getTradeByID(@PathVariable int id) {
+        return tradeService.getTrade(id);
+    }
+
+    @PutMapping("/trades/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public @ResponseBody Trade cancelTrade(@PathVariable int id) {
+        Trade trade = tradeService.getTrade(id);
+        trade.setStatus("cancelled");
+        return trade;
     }
 
     @PostMapping("/trades")
@@ -85,37 +101,58 @@ public class TradeController {
     private void processMarketOrder(Trade trade, Stock stock, Account account) {
 
         String action = trade.getAction();
-
         if (action.equals("buy")) {
-
-            double available_balance = account.getAvailable_balance();
-            double stockPrice = stock.getAsk();
-            int tradeQuantity = trade.getQuantity();
-            if (!verifyPurchaseAbility(available_balance, stockPrice, tradeQuantity)) {
+            
+            if (!verifyPurchaseAbility(trade, stock, account)) {
                 System.out.println("Insufficient funds for purchase!");
                 return;
+                // MODIFY FOR PARTIAL FILL
             }
 
-            // trade matching
-            
+            // Sufficient market orders - fill immediately
+            // ask_price should be from market maker, not from stock
+
         } else if (action.equals("sell")) {
 
         }
 
-        return;
+        reflectInPortfolio(trade, stock.getSymbol());
     }
 
     private void processLimitOrder(Trade trade, Stock stock, Account account) {
-        // remember to process buy/sell as well
+
+        String action = trade.getAction();
+        if (action.equals("buy")) {
+            
+            if (!verifyPurchaseAbility(trade, stock, account)) {
+                System.out.println("Insufficient funds for purchase!");
+                return;
+            }
+            
+        } else if (action.equals("sell")) {
+
+        }
+        reflectInPortfolio(trade, stock.getSymbol());
     }
 
-    private void reflectInPortfolio(Trade trade) {
-
+    private void reflectInPortfolio(Trade trade, String stockSymbol) {
+        Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
+        addAsset(asset);
     }
 
     // Helper function
-    private boolean verifyPurchaseAbility(double balance, double price, int quantity) {
-        if (balance < (price * quantity)) return false;
+    private Asset addAsset(Asset asset) {
+        return assetRepository.save(asset);
+    }
+
+    // Helper function
+    private boolean verifyPurchaseAbility(Trade trade, Stock stock, Account account) {
+
+        double available_balance = account.getAvailable_balance();
+        double stockPrice = stock.getAsk();
+        int tradeQuantity = trade.getQuantity();
+
+        if (available_balance < (stockPrice * tradeQuantity)) return false;
         return true;
     }
 
@@ -143,20 +180,6 @@ public class TradeController {
         }
 
         return account;
-    }
-
-    @GetMapping("/trades/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Trade getTradeByID(@PathVariable int id) {
-        return tradeService.getTrade(id);
-    }
-
-    @PutMapping("/trades/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Trade cancelTrade(@PathVariable int id) {
-        Trade trade = tradeService.getTrade(id);
-        trade.setStatus("cancelled");
-        return trade;
     }
 
 }

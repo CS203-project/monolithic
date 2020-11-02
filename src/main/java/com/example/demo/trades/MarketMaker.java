@@ -47,7 +47,30 @@ public class MarketMaker {
     // *** The customers' trades can then be matched with these market maker's trades.
     public Trade matchTrade(Trade customerTrade) {
         String symbol = customerTrade.getSymbol();
+        String action = customerTrade.getAction();
+        int quantity = customerTrade.getQuantity();
+
+        Trade tradeToMatch = locateOpenTrade(symbol, action, quantity);
+        if (tradeToMatch == null) {
+            System.out.println("No open trades suitable to match");
+        }
+
+        return null;
+    }
+
+    // Helper function
+    public Trade locateOpenTrade(String symbol, String action, int quantity) {
         List<Trade> tradePairs = this.marketTrades.get(symbol);
+        Trade openTrade;
+
+        if (action.equals("buy")) {
+            openTrade = tradePairs.get(0);
+        } else {
+            openTrade = tradePairs.get(1);
+        }
+
+        // check if open trade has sufficient volume
+        if (openTrade.getQuantity() >= quantity) return openTrade;
         return null;
     }
 
