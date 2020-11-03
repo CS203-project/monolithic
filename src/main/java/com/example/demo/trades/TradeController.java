@@ -104,6 +104,11 @@ public class TradeController {
             }
         } else {
             // limit order
+            if (action.equals("buy")) {
+                processLimitOrderBuy(trade, stock, account);
+            } else if (action.equals("sell")) {
+                processLimitOrderSell(trade, stock, account);
+            }
         }
 
         // proceed to trade matching?
@@ -111,9 +116,44 @@ public class TradeController {
         return trade; // temp
     }
 
+    private void processLimitOrderBuy(Trade trade, Stock stock, Account account) {
+
+        Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
+
+        if (openTrade == null) {
+            System.out.println("No open trades found.");
+            return;
+        }
+
+        double price = trade.getBid();
+        double ask = openTrade.getAsk();
+
+        if (price >= ask) {
+            boolean sufficient_quantity = checkQuantity(openTrade, trade);
+            if (sufficient_quantity) {
+                fillTrade(trade, openTrade, stock, account);
+            } else {
+                partialFillTrade(trade, openTrade, stock, account, 2);
+            }
+        }
+    }
+
+    private void processLimitOrderSell(Trade trade, Stock stock, Account account) {
+        
+    }
+
+    private void processMarketOrderSell(Trade trade, Stock stock, Account account) {
+        
+    }
+
     private void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
         
         Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
+
+        if (openTrade == null) {
+            System.out.println("No open trades found.");
+            return;
+        }
 
         boolean sufficient_funds = checkFunds(openTrade, trade, account);
         boolean sufficient_quantity = checkQuantity(openTrade, trade);
@@ -138,10 +178,6 @@ public class TradeController {
 
         // else 
         System.out.println("Trade unable to be filled / matched.");
-    }
-
-    private void processMarketOrderSell(Trade trade, Stock stock, Account account) {
-        
     }
 
     private void partialFillTrade(Trade trade, Trade openTrade, Stock stock, Account account, int status) {
