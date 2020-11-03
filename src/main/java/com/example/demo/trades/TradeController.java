@@ -27,10 +27,13 @@ import com.example.demo.trades.StocksRepository;
 import com.example.demo.trades.Stock;
 import com.example.demo.trades.StockNotFoundException;
 import com.example.demo.portfolio.AssetRepository;
+import com.example.demo.portfolio.Portfolio;
+import com.example.demo.portfolio.PortfolioRepository;
 import com.example.demo.portfolio.Asset;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.Iterator;
 
 @RestController
 public class TradeController {
@@ -39,6 +42,7 @@ public class TradeController {
     private AccountsRepository accRepository;
     private StocksRepository stocksRepository;
     private AssetRepository assetRepository;
+    private PortfolioRepository pfRepository;
     private MarketMaker marketMaker;
 
     @Autowired
@@ -111,9 +115,8 @@ public class TradeController {
             }
         }
 
-        // proceed to trade matching?
         reflectInPortfolio(trade, stockSymbol);
-        return trade; // temp
+        return trade;
     }
 
     private void processLimitOrderBuy(Trade trade, Stock stock, Account account) {
@@ -139,11 +142,62 @@ public class TradeController {
     }
 
     private void processLimitOrderSell(Trade trade, Stock stock, Account account) {
+        int customer_id = trade.getCustomer_id();
+        Portfolio portfolio = getPortfolioForTrade(customer_id);
         
+        if (!checkPortfolioContainsAsset(portfolio, trade)) {
+            System.out.println("No such asset in portfolio.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
+
+        if (openTrade == null) {
+            System.out.println("No open trades found.");
+            return;
+        }
+
+        double price = trade.getAsk();
+        double bid = openTrade.getBid();
+
+        if (price <= bid) {
+            boolean willing_quantity = checkQuantity(openTrade, trade);
+            if (willing_quantity) {
+                fillTradeSell(trade, openTrade, stock, account);
+            } else {
+                partialFillTradeSell(trade, openTrade, stock, account);
+            }
+        }
     }
 
     private void processMarketOrderSell(Trade trade, Stock stock, Account account) {
+        int customer_id = trade.getCustomer_id();
+        Portfolio portfolio = getPortfolioForTrade(customer_id);
         
+        if (!checkPortfolioContainsAsset(portfolio, trade)) {
+            System.out.println("No such asset in portfolio.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
+
+        if (openTrade == null) {
+            System.out.println("No open trades found.");
+            return;
+        }
+
+        boolean willing_quantity = checkQuantity(openTrade, trade);
+
+        if (willing_quantity) {
+            fillTradeSell(trade, openTrade, stock, account);
+            System.out.println("Trade filled");
+            return;
+        } else {
+            partialFillTradeSell(trade, openTrade, stock, account);
+            System.out.println("Trade partially-filled");
+            return;
+        }
+
     }
 
     private void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
@@ -180,10 +234,24 @@ public class TradeController {
         System.out.println("Trade unable to be filled / matched.");
     }
 
+    private void partialFillTradeSell(Trade trade, Trade openTrade, Stock stock, Account account) {
+        trade.setStatus("partial-filled");
+        trade.setDate(Instant.now());
+        trade.setFilled_quantity(trade.getQuantity());
+        trade.setAvg_price(openTrade.getBid());
+
+        // Add to account balance
+        account.updateBalance(trade.getFilled_quantity() * trade.getAvg_price());
+
+        // Reflect in openTrade / stock
+        openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
+        stock.setLast_price(trade.getAvg_price());
+        stock.setAsk_volume(stock.getAsk_volume() + trade.getFilled_quantity());
+    }
+
     private void partialFillTrade(Trade trade, Trade openTrade, Stock stock, Account account, int status) {
         trade.setStatus("partial-filled");
         trade.setDate(Instant.now());
-        
         
         int insufficient_funds = 1;
         if (status == insufficient_funds) {
@@ -223,6 +291,50 @@ public class TradeController {
         stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
     }
 
+    private void fillTradeSell(Trade trade, Trade openTrade, Stock stock, Account account) {
+        // Fill trade
+        trade.setStatus("filled");
+        trade.setDate(Instant.now());
+        trade.setFilled_quantity(trade.getQuantity());
+        trade.setAvg_price(openTrade.getBid());
+
+        // Add to account balance
+        account.updateBalance(trade.getFilled_quantity() * trade.getAvg_price());
+
+        // Reflect in openTrade / stock
+        openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
+        stock.setLast_price(trade.getAvg_price());
+        stock.setAsk_volume(stock.getAsk_volume() + trade.getFilled_quantity());
+    }
+
+    private boolean checkPortfolioContainsAsset(Portfolio portfolio, Trade trade) {
+        Iterable<Asset> allAssets = assetRepository.findAll();
+        Iterator<Asset> iter = allAssets.iterator();
+
+        while (iter.hasNext()) {
+            Asset asset = (Asset)iter.next();
+            if (!asset.getPortfolio().equals(portfolio)) {
+                iter.remove();
+            }
+        }
+
+        String symbol = trade.getSymbol();
+        int quantity = trade.getQuantity();
+
+        for (Asset asset : allAssets) {
+            if(asset.getCode().equals(symbol) && (asset.getQuantity() == quantity)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void reflectInPortfolio(Trade trade, String stockSymbol) {
+        Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
+        addAsset(asset);
+    }
+
     // Helper function
     private boolean checkFunds(Trade openTrade, Trade customerTrade, Account account) {
 
@@ -240,18 +352,43 @@ public class TradeController {
         int openQuantity = openTrade.getQuantity();
         int tradeQuantity = customerTrade.getQuantity();
 
-        if (openQuantity < tradeQuantity) return false;
-        return true;
-    }
+        String action = customerTrade.getAction();
 
-    private void reflectInPortfolio(Trade trade, String stockSymbol) {
-        Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
-        addAsset(asset);
+        if (action.equals("buy")) {
+            if (openQuantity < tradeQuantity) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        
+        if (action.equals("sell")) {
+            if (openQuantity > tradeQuantity) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Helper function
     private Asset addAsset(Asset asset) {
         return assetRepository.save(asset);
+    }
+
+    // Helper function
+    private Portfolio getPortfolioForTrade(int id) {
+        Optional<Portfolio> pfEntity = pfRepository.findById(id);
+        Portfolio portfolio;
+        if (!pfEntity.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } else {
+            portfolio = pfEntity.get();
+        }
+
+        return portfolio;
     }
 
     // Helper function
