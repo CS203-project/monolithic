@@ -78,8 +78,10 @@ public class TradeController {
         //     throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         // }
 
+        String action = trade.getAction();
+
         // If neither buy or sell, invalid trade
-        if (!trade.getAction().equals("buy") && !trade.getAction().equals("sell")) {
+        if (!action.equals("buy") && !action.equals("sell")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
@@ -87,52 +89,123 @@ public class TradeController {
         Stock stock = getStockForTrade(stockSymbol);
         Account account = getAccountForTrade(trade.getAccount_id());
 
+        /*
+        *** Example: if you place a trade to buy a stock worth $5000 and it's still open,
+        *** your available_balance should be balance - $5000. 
+        */
+
         // Check type of order
         if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
-            processMarketOrder(trade, stock, account);
+            // market order
+            if (action.equals("buy")) {
+                processMarketOrderBuy(trade, stock, account);
+            } else if (action.equals("sell")) {
+                processMarketOrderSell(trade, stock, account);
+            }
         } else {
-            processLimitOrder(trade, stock, account);
+            // limit order
         }
 
         // proceed to trade matching?
+        reflectInPortfolio(trade, stockSymbol);
         return trade; // temp
     }
 
-    private void processMarketOrder(Trade trade, Stock stock, Account account) {
+    private void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
+        
+        Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
 
-        String action = trade.getAction();
-        if (action.equals("buy")) {
-            
-            if (!verifyPurchaseAbility(trade, stock, account)) {
-                System.out.println("Insufficient funds for purchase!");
-                return;
-                // MODIFY FOR PARTIAL FILL
-            }
+        boolean sufficient_funds = checkFunds(openTrade, trade, account);
+        boolean sufficient_quantity = checkQuantity(openTrade, trade);
 
-            // Sufficient market orders - fill immediately
-            // ask_price should be from market maker, not from stock
-
-        } else if (action.equals("sell")) {
-
+        if (sufficient_funds && sufficient_quantity) {
+            fillTrade(trade, openTrade, stock, account);
+            System.out.println("Trade filled");
+            return;
         }
 
-        reflectInPortfolio(trade, stock.getSymbol());
+        if (!sufficient_funds && sufficient_quantity) {
+            partialFillTrade(trade, openTrade, stock, account, 1);
+            System.out.println("Trade partially filled");
+            return;
+        }
+
+        if (sufficient_funds && !sufficient_quantity) {
+            partialFillTrade(trade, openTrade, stock, account, 2);
+            System.out.println("Trade partially filled");
+            return;
+        }
+
+        // else 
+        System.out.println("Trade unable to be filled / matched.");
     }
 
-    private void processLimitOrder(Trade trade, Stock stock, Account account) {
+    private void processMarketOrderSell(Trade trade, Stock stock, Account account) {
+        
+    }
 
-        String action = trade.getAction();
-        if (action.equals("buy")) {
-            
-            if (!verifyPurchaseAbility(trade, stock, account)) {
-                System.out.println("Insufficient funds for purchase!");
-                return;
-            }
-            
-        } else if (action.equals("sell")) {
-
+    private void partialFillTrade(Trade trade, Trade openTrade, Stock stock, Account account, int status) {
+        trade.setStatus("partial-filled");
+        trade.setDate(Instant.now());
+        
+        
+        int insufficient_funds = 1;
+        if (status == insufficient_funds) {
+            // insufficient funds
+            int qtyToFill = (int)(account.getBalance() / openTrade.getAsk());
+            trade.setFilled_quantity(qtyToFill);
+        } else {
+            // quantity not matched
+            trade.setFilled_quantity(openTrade.getQuantity());
+            trade.setQuantity(trade.getQuantity() - trade.getFilled_quantity());
         }
-        reflectInPortfolio(trade, stock.getSymbol());
+
+        trade.setAvg_price(openTrade.getAsk());
+    
+        // Deduct from account balance
+        account.updateBalance(-(trade.getFilled_quantity() * trade.getAvg_price()));
+
+        // Reflect in openTrade / stock
+        openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
+        stock.setLast_price(trade.getAvg_price());
+        stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
+    }
+
+    private void fillTrade(Trade trade, Trade openTrade, Stock stock, Account account) {
+        // Fill trade
+        trade.setStatus("filled");
+        trade.setDate(Instant.now());
+        trade.setFilled_quantity(trade.getQuantity());
+        trade.setAvg_price(openTrade.getAsk());
+
+        // Deduct from account balance
+        account.updateBalance(-(trade.getFilled_quantity() * trade.getAvg_price()));
+        
+        // Reflect in openTrade / stock
+        openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
+        stock.setLast_price(trade.getAvg_price());
+        stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
+    }
+
+    // Helper function
+    private boolean checkFunds(Trade openTrade, Trade customerTrade, Account account) {
+
+        double available_balance = account.getAvailable_balance();
+        double openTradePrice = openTrade.getAsk();
+        int tradeQuantity = customerTrade.getQuantity();
+
+        if (available_balance < (openTradePrice * tradeQuantity)) return false;
+        return true;
+    }
+
+    // Helper function
+    private boolean checkQuantity(Trade openTrade, Trade customerTrade) {
+
+        int openQuantity = openTrade.getQuantity();
+        int tradeQuantity = customerTrade.getQuantity();
+
+        if (openQuantity < tradeQuantity) return false;
+        return true;
     }
 
     private void reflectInPortfolio(Trade trade, String stockSymbol) {
@@ -143,17 +216,6 @@ public class TradeController {
     // Helper function
     private Asset addAsset(Asset asset) {
         return assetRepository.save(asset);
-    }
-
-    // Helper function
-    private boolean verifyPurchaseAbility(Trade trade, Stock stock, Account account) {
-
-        double available_balance = account.getAvailable_balance();
-        double stockPrice = stock.getAsk();
-        int tradeQuantity = trade.getQuantity();
-
-        if (available_balance < (stockPrice * tradeQuantity)) return false;
-        return true;
     }
 
     // Helper function
