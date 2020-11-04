@@ -22,20 +22,23 @@ import java.util.Random;
 public class MarketMaker {
 
     private StocksRepository stocksRepo;
+    private TradeService tradeService;
     private Instant timestamp = Instant.now();
     private HashMap<String, List<Trade>> marketTrades; // empty if market is closed
 
     @Autowired
-    public MarketMaker(StocksRepository stocksRepo) {
+    public MarketMaker(StocksRepository stocksRepo, TradeService tradeService) {
         this.stocksRepo = stocksRepo;
+        this.tradeService = tradeService;
         this.marketTrades = autoCreate();
     }
 
     // For testing: @Scheduled(cron="* * * * * *")
-    @Scheduled(cron="* 0 0/1 * * MON-FRI")
-    // At minute 0 past every hour from 0 through 23 on every day-of-week from Monday through Friday.
+    @Scheduled(cron="* 0 9-17/1 * * MON-FRI")
+    // At minute 0 past every hour from 9 through 17 on every day-of-week from Monday through Friday.
     public void updateEveryHour() {
         timestamp = Instant.now();
+        this.marketTrades = autoCreate();
 
         if (!isMarketOpen()) {
             System.out.println("Market is closed.");
@@ -130,14 +133,11 @@ public class MarketMaker {
     }
 
     public void expireTrades() {
-        Iterator it = marketTrades.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            for (Trade trade : marketTrades.get(pair.getKey())) {
+        List<Trade> trades = tradeService.listTrades();
+        for (Trade trade : trades) {
+            if ((!trade.getStatus().equals("partial-filled")) && (!trade.getStatus().equals("filled"))) {
                 trade.setStatus("expired");
             }
-
-            it.remove();
         }
     }
 }
