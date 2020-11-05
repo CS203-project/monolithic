@@ -165,11 +165,8 @@ public class TradeController {
         int customer_id = trade.getCustomer_id();
         Portfolio portfolio = getPortfolioForTrade(customer_id);
         
-        // Check if asset in portfolio
-        if (!checkPortfolioContainsAsset(portfolio, trade)) {
-            System.out.println("No such asset in portfolio.");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        // Check if asset in portfolio, will throw exception if not found
+        checkPortfolioContainsAsset(portfolio, trade);
 
         Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
 
@@ -196,11 +193,8 @@ public class TradeController {
         int customer_id = trade.getCustomer_id();
         Portfolio portfolio = getPortfolioForTrade(customer_id);
         
-        // Check if asset in portfolio
-        if (!checkPortfolioContainsAsset(portfolio, trade)) {
-            System.out.println("No such asset in portfolio.");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        // Check if asset in portfolio, will throw exception if not found
+        checkPortfolioContainsAsset(portfolio, trade);
 
         Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
 
@@ -332,7 +326,7 @@ public class TradeController {
         stock.setAsk_volume(stock.getAsk_volume() + trade.getFilled_quantity());
     }
 
-    private boolean checkPortfolioContainsAsset(Portfolio portfolio, Trade trade) {
+    private void checkPortfolioContainsAsset(Portfolio portfolio, Trade trade) {
         Iterable<Asset> allAssets = assetRepository.findAll();
         Iterator<Asset> iter = allAssets.iterator();
 
@@ -348,11 +342,12 @@ public class TradeController {
 
         for (Asset asset : allAssets) {
             if(asset.getCode().equals(symbol) && (asset.getQuantity() == quantity)) {
-                return true;
+                return;
             }
         }
 
-        return false;
+        System.out.println("No such asset in portfolio.");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     private void reflectInPortfolio(Trade trade, String stockSymbol) {
