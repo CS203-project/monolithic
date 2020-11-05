@@ -54,16 +54,38 @@ public class TradeController {
         this.marketMaker = marketMaker;
     }
 
+    private void verifyTradeOwnership(Trade trade, int customer_id) {
+        if(trade.getCustomer_id() != customer_id) {
+            System.out.println("Trade of this ID is not accessible to this user");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade getTradeByID(@PathVariable int id) {
-        return tradeService.getTrade(id);
+        // Authentication
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
+
+        Trade trade = tradeService.getTrade(id);
+        verifyTradeOwnership(trade, currentUser.getId());
+
+        return trade;
     }
 
     @PutMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade cancelTrade(@PathVariable int id) {
+        // Authentication
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
         Trade trade = tradeService.getTrade(id);
+
+        verifyTradeOwnership(trade, currentUser.getId());
+        
         trade.setStatus("cancelled");
         return trade;
     }

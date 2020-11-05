@@ -66,13 +66,16 @@ public class MarketMaker {
     }
 
     // Helper function
+    // Find open trades that were created by MarketMaker for a specific symbol
     public Trade locateOpenTrade(String symbol, String action, int quantity) {
         List<Trade> tradePairs = this.marketTrades.get(symbol);
         Trade openTrade;
 
         if (action.equals("buy")) {
+            // in the trade pair, the first one is a buy
             openTrade = tradePairs.get(0);
         } else {
+            // in the trade pair, the second one is a sell
             openTrade = tradePairs.get(1);
         }
 
@@ -87,15 +90,19 @@ public class MarketMaker {
     // *** The volumes of these trades can be set to a fixed value, say 20000.
     public HashMap<String, List<Trade>> autoCreate() {
 
-        // map of trade pairs - key: symbol, value: list of trades (2 trades)
+        // Map of trade pairs - key: symbol, value: list of trades (2 trades)
         HashMap<String, List<Trade>> tradePairsBySymbol = new HashMap<>();
-        if (!isMarketOpen()) return tradePairsBySymbol; // return empty map
 
+        // Return empty map, when market is not open
+        if (!isMarketOpen()) return tradePairsBySymbol;
+
+        // Random double generator for point difference between last_price and bid / ask
         Random random = new Random();
         double pointDifference = random.nextDouble();
 
         List<Stock> stocks = stocksRepo.findAll();
 
+        // Create new trades for each stock symbol
         for (Stock stock : stocks) {
             String symbol = stock.getSymbol();
 
