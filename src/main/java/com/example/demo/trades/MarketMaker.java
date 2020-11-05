@@ -24,7 +24,7 @@ public class MarketMaker {
     private StocksRepository stocksRepo;
     private TradeService tradeService;
     private Instant timestamp = Instant.now();
-    private HashMap<String, List<Trade>> marketTrades; // empty if market is closed
+    private HashMap<String, List<Trade>> marketTrades; 
 
     @Autowired
     public MarketMaker(StocksRepository stocksRepo, TradeService tradeService) {
@@ -33,19 +33,23 @@ public class MarketMaker {
         this.marketTrades = autoCreate();
     }
 
-    // For testing: @Scheduled(cron="* * * * * *")
     @Scheduled(cron="* 0 9-17/1 * * MON-FRI")
-    // At minute 0 past every hour from 9 through 17 on every day-of-week from Monday through Friday.
+    // Cron: At minute 0 past every hour from 9 through 17 on every day-of-week from Monday through Friday.
+    // Every hour while market is open, a new pair of buy and sell trades will be created for each symbol
+    // If the market is closed, trades will be expired
     public void updateEveryHour() {
-        timestamp = Instant.now();
-        this.marketTrades = autoCreate();
 
-        if (!isMarketOpen()) {
+        if (isMarketOpen()) {
+            timestamp = Instant.now();
+            this.marketTrades = autoCreate();
+
+        } else {
             System.out.println("Market is closed.");
             expireTrades();
         }
     }
 
+    // From TestConstants.java:
     // *** These trades are referred to as the market maker's trades - to create liquidity in the market.
     // *** The customers' trades can then be matched with these market maker's trades.
     public Trade matchTrade(Trade customerTrade) {
@@ -77,6 +81,7 @@ public class MarketMaker {
         return null;
     }
 
+    // From TestConstants.java:
     // *** When your API starts (or market starts), your API will auto-create multiple open buy and sell trades,
     // *** one pair (buy and sell) for each stock listed at the bid and ask price, respectively.
     // *** The volumes of these trades can be set to a fixed value, say 20000.
@@ -135,7 +140,9 @@ public class MarketMaker {
     public void expireTrades() {
         List<Trade> trades = tradeService.listTrades();
         for (Trade trade : trades) {
-            if ((!trade.getStatus().equals("partial-filled")) && (!trade.getStatus().equals("filled"))) {
+            int hourCreated = trade.getHour();
+            // expire trades that are not already filled / partially filled, and those created while market was open
+            if ((!trade.getStatus().equals("partial-filled")) && (!trade.getStatus().equals("filled")) && (hourCreated < 17 && hourCreated > 9) && !trade.createdOnWeekend()) {
                 trade.setStatus("expired");
             }
         }

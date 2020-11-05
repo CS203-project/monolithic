@@ -6,6 +6,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 
 import lombok.*;
 
@@ -27,7 +29,7 @@ public class Trade {
     private int filled_quantity;
 
     // submitted time in Unix timestamp, expired after 5pm of the day
-    private Instant date;
+    private long date;
 
     private int account_id;
     private int customer_id;
@@ -41,5 +43,23 @@ public class Trade {
         this.symbol = symbol;
         this.quantity = quantity;
         this.status = status;
+    }
+
+    public void setDate(Instant date) {
+        this.date = date.getEpochSecond();
+    }
+
+    public Instant getDate() {
+        return Instant.ofEpochSecond(this.date);
+    }
+
+    public int getHour() {
+        return ZonedDateTime.ofInstant(getDate(), ZoneId.of("Asia/Singapore")).getHour();
+    }
+
+    public boolean createdOnWeekend() {
+        int dayOfWeek = ZonedDateTime.ofInstant(getDate(), ZoneId.of("Asia/Singapore")).getDayOfWeek().getValue();
+        if (dayOfWeek == 6 || dayOfWeek == 7) return true;
+        return false;
     }
 }
