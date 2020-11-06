@@ -22,3 +22,4 @@ curl --location --request GET 'localhost:8080/all'
 * FIND ALL USERS
 1. Change request type to GET
 2. insert url ```localhost:8080/all```# auth-microservice
+# Ryver_Banking_Platform
