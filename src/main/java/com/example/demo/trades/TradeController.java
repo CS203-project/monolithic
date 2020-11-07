@@ -358,11 +358,6 @@ public class TradeController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-    private void reflectInPortfolio(Trade trade, Stock stock) {
-        Asset asset = new Asset(stock.getSymbol(), trade.getFilled_quantity(), trade.getAvg_price());
-        addAsset(asset);
-    }
-
     // Helper function
     private boolean checkFunds(Trade openTrade, Trade customerTrade, Account account) {
 
@@ -399,6 +394,31 @@ public class TradeController {
         }
 
         return false;
+    }
+
+    private void reflectInPortfolio(Trade trade, Stock stock) {
+
+        updateAssetsPrice(stock);
+        Asset asset = new Asset(stock.getSymbol(), trade.getFilled_quantity(), trade.getAvg_price());
+        addAsset(asset);
+    }
+
+    private void updateAssetsPrice(Stock stock) {
+        Optional<List<Asset>> assetEntity = assetRepository.findByCode(stock.getSymbol());
+        List<Asset> assets;
+
+        if (!assetEntity.isPresent()) {
+            System.out.println("Can't find assets!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } else {
+            assets = assetEntity.get();
+        }
+
+        double stock_price = stock.getLast_price();
+        for (Asset asset : assets) {
+            asset.setCurrent_price(stock_price);
+            assetRepository.save(asset);
+        }
     }
 
     // Helper function
