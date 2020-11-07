@@ -88,6 +88,9 @@ public class TradeController {
         verifyTradeOwnership(trade, currentUser.getId());
 
         trade.setStatus("cancelled");
+        
+        // Reflect status in database
+        tradeService.addTrade(trade);
         return trade;
     }
 
@@ -134,7 +137,12 @@ public class TradeController {
             }
         }
 
-        reflectInPortfolio(trade, stockSymbol);
+        reflectInPortfolio(trade, stock);
+
+        // reflect changes in database
+        tradeService.addTrade(trade);
+        stocksRepository.save(stock);
+        
         return trade;
     }
 
@@ -350,8 +358,8 @@ public class TradeController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-    private void reflectInPortfolio(Trade trade, String stockSymbol) {
-        Asset asset = new Asset(stockSymbol, trade.getFilled_quantity(), trade.getAvg_price());
+    private void reflectInPortfolio(Trade trade, Stock stock) {
+        Asset asset = new Asset(stock.getSymbol(), trade.getFilled_quantity(), trade.getAvg_price());
         addAsset(asset);
     }
 

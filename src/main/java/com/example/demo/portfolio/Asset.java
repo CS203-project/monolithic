@@ -30,8 +30,13 @@ public class Asset {
 
     public Asset(String code, int quantity, double avg_price) {
         this.code = code;
-        this.quantity = quantity;
+        this.quantity = this.quantity + quantity;
         this.avg_price = avg_price;
-        this.value = current_price * quantity;
+        this.value = current_price * this.quantity;
+    }
+
+    public void setCurrent_price(double new_price) {
+        this.gain_loss = new_price - this.current_price;
+        this.current_price = new_price;
     }
 }
