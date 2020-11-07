@@ -61,36 +61,43 @@ public class CMSController {
 
     @GetMapping(path="/contents/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Content getContent(@PathVariable int id) throws NotFoundException {
+    public @ResponseBody Content getContent(@PathVariable int id) throws NotFoundException, UnauthorizedException {
         AuthorizedUser context = new AuthorizedUser();
+        context.validate();
         return cms.getContent(id, context.isManager());
     }
 
 
     @GetMapping(path="/contents")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody List<Content> getContents() {
+    public @ResponseBody List<Content> getContents() throws UnauthorizedException {
+        AuthorizedUser context = new AuthorizedUser();
+        context.validate();
         return cms.listContent();
     }
 
     @PostMapping(path="/contents")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Content addContent (@RequestBody Content content) {
+    public @ResponseBody Content addContent (@RequestBody Content content) throws UnauthorizedException {
         AuthorizedUser context = new AuthorizedUser();
+        context.validate();
         return cms.addContent(content, context.isManager());
     }
 
     @PutMapping("/contents/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Content updateContent(@PathVariable int id, @RequestBody Content newContentInfo) throws NotFoundException {
+    public @ResponseBody Content updateContent(@PathVariable int id, @RequestBody Content newContentInfo) throws NotFoundException, UnauthorizedException {
         AuthorizedUser context = new AuthorizedUser();
+        context.validate();
         return cms.updateContent(id, newContentInfo, context.isManager());
     }
 
 
     @DeleteMapping("/contents/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody void deleteBook(@PathVariable int id) throws NotFoundException {
+    public @ResponseBody void deleteBook(@PathVariable int id) throws NotFoundException, UnauthorizedException {
+        AuthorizedUser context = new AuthorizedUser();
+        context.validate();
         cms.deleteContent(id);
     }
     
