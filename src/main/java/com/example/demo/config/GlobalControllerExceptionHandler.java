@@ -65,4 +65,22 @@ public class GlobalControllerExceptionHandler {
     response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
     response.flushBuffer();
   }
+
+  @ExceptionHandler
+  void handleNotFoundException(ConflictException e, HttpServletResponse response) throws IOException {
+    response.resetBuffer();
+    response.setStatus(HttpServletResponse.SC_CONFLICT);
+    response.setHeader("Content-Type", "application/json");
+    response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
+    response.flushBuffer();
+  }
+
+  @ExceptionHandler
+  void handleNotFoundException(UnauthorizedException e, HttpServletResponse response) throws IOException {
+    response.resetBuffer();
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setHeader("Content-Type", "application/json");
+    response.getOutputStream().print(String.format("{\"error\":\"%s\"}", e.getMessage()));
+    response.flushBuffer();
+  }
 }

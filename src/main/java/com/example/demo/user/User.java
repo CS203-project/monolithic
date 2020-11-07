@@ -24,7 +24,7 @@ public class User implements UserDetails {
   @Id @GeneratedValue(strategy=GenerationType.SEQUENCE)
   private Integer id;
   private String fullName;
-  @Pattern(regexp = "^S\\d{7}[A-Z]$")
+  @Pattern(regexp = "^[ST]\\d{7}[A-JZ]$")
   private String nric;
   // @Pattern(regexp = "^[+]65(6|8|9)\\d{7}$")
   @Pattern(regexp = "^(6|8|9)\\d{7}$")
@@ -48,6 +48,16 @@ public class User implements UserDetails {
     this.password = password;
     this.authorities = authorities;
     this.active = active;
+  }
+  public User(String username, String password, String authorities) {
+    this.fullName = "fullName";
+    this.nric = "S9704803G";
+    this.phone = "86983829";
+    this.address = "address";
+    this.active = true;
+    this.username = username;
+    this.password = password;
+    this.authorities = authorities;
   }
 
   @Override

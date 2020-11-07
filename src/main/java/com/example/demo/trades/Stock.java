@@ -25,7 +25,14 @@ public class Stock {
     private double ask;
 
     public Stock() {}
-
+    public Stock(String symbol) {
+        this.symbol = "A17U";
+        this.last_price = 3.28;
+        this.bid_volume = 20000;
+        this.bid = 3.26;
+        this.ask_volume = 20000;
+        this.ask = 3.29;
+    }
     public Stock(JSONObject json) {
         this.symbol = json.getString("symbol");
         this.last_price = json.optDouble("close", 0);

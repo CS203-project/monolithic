@@ -3,6 +3,7 @@ package com.example.demo.security;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import com.example.demo.user.User;
+import com.example.demo.config.UnauthorizedException;
 
 public class AuthorizedUser {
   private User user;
@@ -24,6 +25,10 @@ public class AuthorizedUser {
       }
     }
     return isManager;
+  }
+
+  public void validate() throws UnauthorizedException {
+    if (this.user == null || !this.user.getActive()) throw new UnauthorizedException("user not active");
   }
   
   public boolean isAnalyst() {

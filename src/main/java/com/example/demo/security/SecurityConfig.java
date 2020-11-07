@@ -45,6 +45,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .httpBasic()
         .and()
       .authorizeRequests()
+        .antMatchers(HttpMethod.POST, "/reset", "/reset/**").permitAll()
         .antMatchers(HttpMethod.GET, "/all", "/all/**").authenticated()
         .antMatchers(HttpMethod.GET, "/customers", "/customers/*").authenticated()
         .antMatchers(HttpMethod.POST, "/customers", "/customers/*").hasRole("MANAGER")
