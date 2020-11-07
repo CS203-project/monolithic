@@ -36,7 +36,9 @@ public class Asset {
     }
 
     public void setCurrent_price(double new_price) {
-        this.gain_loss = new_price - this.current_price;
+        double prev_value = this.value;
         this.current_price = new_price;
+        this.value = current_price * this.quantity;
+        this.gain_loss = this.value - prev_value;
     }
 }
