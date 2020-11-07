@@ -24,7 +24,7 @@ public class MarketMaker {
     private StocksRepository stocksRepo;
     private TradeService tradeService;
     private Instant timestamp = Instant.now();
-    private HashMap<String, List<Trade>> marketTrades; // empty if market is closed
+    private HashMap<String, List<Trade>> marketTrades; 
 
     @Autowired
     public MarketMaker(StocksRepository stocksRepo, TradeService tradeService) {
@@ -33,19 +33,23 @@ public class MarketMaker {
         this.marketTrades = autoCreate();
     }
 
-    // For testing: @Scheduled(cron="* * * * * *")
     @Scheduled(cron="* 0 9-17/1 * * MON-FRI")
-    // At minute 0 past every hour from 9 through 17 on every day-of-week from Monday through Friday.
+    // Cron: At minute 0 past every hour from 9 through 17 on every day-of-week from Monday through Friday.
+    // Every hour while market is open, a new pair of buy and sell trades will be created for each symbol
+    // If the market is closed, trades will be expired
     public void updateEveryHour() {
-        timestamp = Instant.now();
-        this.marketTrades = autoCreate();
 
-        if (!isMarketOpen()) {
+        if (isMarketOpen()) {
+            timestamp = Instant.now();
+            this.marketTrades = autoCreate();
+
+        } else {
             System.out.println("Market is closed.");
             expireTrades();
         }
     }
 
+    // From TestConstants.java:
     // *** These trades are referred to as the market maker's trades - to create liquidity in the market.
     // *** The customers' trades can then be matched with these market maker's trades.
     public Trade matchTrade(Trade customerTrade) {
@@ -62,13 +66,16 @@ public class MarketMaker {
     }
 
     // Helper function
+    // Find open trades that were created by MarketMaker for a specific symbol
     public Trade locateOpenTrade(String symbol, String action, int quantity) {
         List<Trade> tradePairs = this.marketTrades.get(symbol);
         Trade openTrade;
 
         if (action.equals("buy")) {
+            // in the trade pair, the first one is a buy
             openTrade = tradePairs.get(0);
         } else {
+            // in the trade pair, the second one is a sell
             openTrade = tradePairs.get(1);
         }
 
@@ -77,20 +84,25 @@ public class MarketMaker {
         return null;
     }
 
+    // From TestConstants.java:
     // *** When your API starts (or market starts), your API will auto-create multiple open buy and sell trades,
     // *** one pair (buy and sell) for each stock listed at the bid and ask price, respectively.
     // *** The volumes of these trades can be set to a fixed value, say 20000.
     public HashMap<String, List<Trade>> autoCreate() {
 
-        // map of trade pairs - key: symbol, value: list of trades (2 trades)
+        // Map of trade pairs - key: symbol, value: list of trades (2 trades)
         HashMap<String, List<Trade>> tradePairsBySymbol = new HashMap<>();
-        if (!isMarketOpen()) return tradePairsBySymbol; // return empty map
 
+        // Return empty map, when market is not open
+        if (!isMarketOpen()) return tradePairsBySymbol;
+
+        // Random double generator for point difference between last_price and bid / ask
         Random random = new Random();
         double pointDifference = random.nextDouble();
 
         List<Stock> stocks = stocksRepo.findAll();
 
+        // Create new trades for each stock symbol
         for (Stock stock : stocks) {
             String symbol = stock.getSymbol();
 
@@ -135,7 +147,9 @@ public class MarketMaker {
     public void expireTrades() {
         List<Trade> trades = tradeService.listTrades();
         for (Trade trade : trades) {
-            if ((!trade.getStatus().equals("partial-filled")) && (!trade.getStatus().equals("filled"))) {
+            int hourCreated = trade.getHour();
+            // expire trades that are not already filled / partially filled, and those created while market was open
+            if ((!trade.getStatus().equals("partial-filled")) && (!trade.getStatus().equals("filled")) && (hourCreated < 17 && hourCreated > 9) && !trade.createdOnWeekend()) {
                 trade.setStatus("expired");
             }
         }

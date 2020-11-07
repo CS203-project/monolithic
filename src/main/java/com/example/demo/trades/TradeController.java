@@ -54,16 +54,39 @@ public class TradeController {
         this.marketMaker = marketMaker;
     }
 
+    // Checks if the trade belongs to the currentUser
+    private void verifyTradeOwnership(Trade trade, int customer_id) {
+        if(trade.getCustomer_id() != customer_id) {
+            System.out.println("Trade of this ID is not accessible to this user");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
     @GetMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade getTradeByID(@PathVariable int id) {
-        return tradeService.getTrade(id);
+        // Authentication
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
+
+        Trade trade = tradeService.getTrade(id);
+        verifyTradeOwnership(trade, currentUser.getId());
+
+        return trade;
     }
 
     @PutMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade cancelTrade(@PathVariable int id) {
+        // Authentication
+        User currentUser;
+        AuthorizedUser context = new AuthorizedUser();
+        currentUser = context.getUser();
         Trade trade = tradeService.getTrade(id);
+
+        verifyTradeOwnership(trade, currentUser.getId());
+
         trade.setStatus("cancelled");
         return trade;
     }
@@ -77,10 +100,7 @@ public class TradeController {
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
 
-        // Unauthorized
-        // if (currentUser.getId() != trade.getCustomer_id()) {
-        //     throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        // }
+        verifyTradeOwnership(trade, currentUser.getId());
 
         String action = trade.getAction();
 
@@ -93,24 +113,23 @@ public class TradeController {
         Stock stock = getStockForTrade(stockSymbol);
         Account account = getAccountForTrade(trade.getAccount_id());
 
-        /*
-        *** Example: if you place a trade to buy a stock worth $5000 and it's still open,
-        *** your available_balance should be balance - $5000. 
-        */
-
         // Check type of order
         if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
             // market order
             if (action.equals("buy")) {
+                // market order - buy
                 processMarketOrderBuy(trade, stock, account);
             } else if (action.equals("sell")) {
+                // market order - sell
                 processMarketOrderSell(trade, stock, account);
             }
         } else {
             // limit order
             if (action.equals("buy")) {
+                // limit order - buy
                 processLimitOrderBuy(trade, stock, account);
             } else if (action.equals("sell")) {
+                // limit order - sell
                 processLimitOrderSell(trade, stock, account);
             }
         }
@@ -131,6 +150,7 @@ public class TradeController {
         double price = trade.getBid();
         double ask = openTrade.getAsk();
 
+        // Limit order (buy) conditions for fill / partial-fill
         if (price >= ask) {
             boolean sufficient_quantity = checkQuantity(openTrade, trade);
             if (sufficient_quantity) {
@@ -145,10 +165,8 @@ public class TradeController {
         int customer_id = trade.getCustomer_id();
         Portfolio portfolio = getPortfolioForTrade(customer_id);
         
-        if (!checkPortfolioContainsAsset(portfolio, trade)) {
-            System.out.println("No such asset in portfolio.");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        // Check if asset in portfolio, will throw exception if not found
+        checkPortfolioContainsAsset(portfolio, trade);
 
         Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
 
@@ -160,6 +178,7 @@ public class TradeController {
         double price = trade.getAsk();
         double bid = openTrade.getBid();
 
+        // Limit order (sell) conditions for fill / partial-fill
         if (price <= bid) {
             boolean willing_quantity = checkQuantity(openTrade, trade);
             if (willing_quantity) {
@@ -174,10 +193,8 @@ public class TradeController {
         int customer_id = trade.getCustomer_id();
         Portfolio portfolio = getPortfolioForTrade(customer_id);
         
-        if (!checkPortfolioContainsAsset(portfolio, trade)) {
-            System.out.println("No such asset in portfolio.");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        // Check if asset in portfolio, will throw exception if not found
+        checkPortfolioContainsAsset(portfolio, trade);
 
         Trade openTrade = marketMaker.locateOpenTrade(stock.getSymbol(), trade.getAction(), trade.getQuantity());
 
@@ -186,6 +203,7 @@ public class TradeController {
             return;
         }
 
+        // Market order (sell) conditions for fill / partial fill
         boolean willing_quantity = checkQuantity(openTrade, trade);
 
         if (willing_quantity) {
@@ -212,6 +230,7 @@ public class TradeController {
         boolean sufficient_funds = checkFunds(openTrade, trade, account);
         boolean sufficient_quantity = checkQuantity(openTrade, trade);
 
+        // Market order (buy) conditions for fill / partial fill
         if (sufficient_funds && sufficient_quantity) {
             fillTrade(trade, openTrade, stock, account);
             System.out.println("Trade filled");
@@ -307,7 +326,7 @@ public class TradeController {
         stock.setAsk_volume(stock.getAsk_volume() + trade.getFilled_quantity());
     }
 
-    private boolean checkPortfolioContainsAsset(Portfolio portfolio, Trade trade) {
+    private void checkPortfolioContainsAsset(Portfolio portfolio, Trade trade) {
         Iterable<Asset> allAssets = assetRepository.findAll();
         Iterator<Asset> iter = allAssets.iterator();
 
@@ -323,11 +342,12 @@ public class TradeController {
 
         for (Asset asset : allAssets) {
             if(asset.getCode().equals(symbol) && (asset.getQuantity() == quantity)) {
-                return true;
+                return;
             }
         }
 
-        return false;
+        System.out.println("No such asset in portfolio.");
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     private void reflectInPortfolio(Trade trade, String stockSymbol) {
