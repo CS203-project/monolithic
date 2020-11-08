@@ -10,6 +10,11 @@ import java.time.ZonedDateTime;
 import java.time.ZoneId;
 
 import com.example.demo.accounts.Account;
+import com.example.demo.portfolio.Portfolio;
+import com.example.demo.portfolio.PortfolioRepository;
+
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -17,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Optional;
 
 @Configuration
 @EnableScheduling
@@ -24,13 +30,15 @@ import java.util.Random;
 public class MarketMaker {
     private StockService stockService;
     private TradeService tradeService;
+    private PortfolioRepository pfRepository;
     private boolean marketOpen;
     private HashMap<String, List<Trade>> marketTrades; 
 
     @Autowired
-    public MarketMaker(StockService stockService, TradeService tradeService) {
+    public MarketMaker(StockService stockService, TradeService tradeService, PortfolioRepository pfRepository) {
         this.stockService = stockService;
         this.tradeService = tradeService;
+        this.pfRepository = pfRepository;
         this.marketOpen = stockService.isOpen();
         this.marketTrades = autoCreate();
     }
@@ -149,6 +157,62 @@ public class MarketMaker {
         }
     }
 
+    // Process Market Order for a Buy Action
+    public void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
+        Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
+
+        boolean sufficient_funds = checkFunds(openTrade, trade, account);
+        boolean sufficient_quantity = checkQuantity(openTrade, trade);
+
+        // Market order (buy) conditions for fill / partial fill
+        if (sufficient_funds && sufficient_quantity) {
+            fillTrade(trade, openTrade, stock, account);
+            System.out.println("Trade filled");
+            return;
+        }
+
+        if (!sufficient_funds && sufficient_quantity) {
+            partialFillTrade(trade, openTrade, stock, account, 1);
+            System.out.println("Trade partially filled");
+            return;
+        }
+
+        if (sufficient_funds && !sufficient_quantity) {
+            partialFillTrade(trade, openTrade, stock, account, 2);
+            System.out.println("Trade partially filled");
+            return;
+        }
+
+        // else 
+        System.out.println("Trade unable to be filled / matched.");
+    }
+
+    // Process Market Order for a Sell Action
+    private void processMarketOrderSell(Trade trade, Stock stock, Account account) {
+        int customer_id = trade.getCustomer_id();
+        Portfolio portfolio = getPortfolioForTrade(customer_id);
+
+        if (!portfolio.containsAssetToSell(trade.getSymbol(), trade.getQuantity())) {
+            System.out.println("No such asset in portfolio.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
+
+        // Market order (sell) conditions for fill / partial fill
+        boolean willing_quantity = checkQuantity(openTrade, trade);
+
+        if (willing_quantity) {
+            fillTradeSell(trade, openTrade, stock, account);
+            System.out.println("Trade filled");
+            return;
+        } else {
+            partialFillTradeSell(trade, openTrade, stock, account);
+            System.out.println("Trade partially-filled");
+            return;
+        }
+    }
+
     // Fill Trade for a Buy Action
     private void fillTrade(Trade trade, Trade openTrade, Stock stock, Account account) {
         fillTradeGeneric(trade, openTrade, stock);
@@ -169,34 +233,35 @@ public class MarketMaker {
         stock.setAskVolume(stock.getAskVolume() + trade.getFilled_quantity());
     }
 
-    // Process Market Order for a Buy Action
-    public void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
-        Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
-
-        boolean sufficient_funds = checkFunds(openTrade, trade, account);
-        boolean sufficient_quantity = checkQuantity(openTrade, trade);
-
-        // Market order (buy) conditions for fill / partial fill
-        if (sufficient_funds && sufficient_quantity) {
-            // fillTrade(trade, openTrade, stock, account);
-            // System.out.println("Trade filled");
-            // return;
+    // Partial Fill Trade for a Buy Action
+    private void partialFillTrade(Trade trade, Trade openTrade, Stock stock, Account account, int status) {
+        int insufficient_funds = 1;
+        if (status == insufficient_funds) {
+            // insufficient funds
+            int qtyToFill = (int)(account.getBalance() / openTrade.getAsk());
+            trade.setFilled_quantity(qtyToFill);
+        } else {
+            // quantity not matched
+            trade.setFilled_quantity(openTrade.getQuantity());
+            trade.setQuantity(trade.getQuantity() - trade.getFilled_quantity());
         }
 
-        if (!sufficient_funds && sufficient_quantity) {
-            // partialFillTrade(trade, openTrade, stock, account, 1);
-            // System.out.println("Trade partially filled");
-            // return;
-        }
+        trade.setAvg_price(openTrade.getAsk());
+        
+        // Reflect changes in stock and account
+        account.updateBalance(-(trade.getFilled_quantity() * trade.getAvg_price()));
+        stock.setAskVolume(stock.getAskVolume() - trade.getFilled_quantity());
+    }
 
-        if (sufficient_funds && !sufficient_quantity) {
-            // partialFillTrade(trade, openTrade, stock, account, 2);
-            // System.out.println("Trade partially filled");
-            // return;
-        }
+    // Partial Fill Trade for a Sell Action
+    private void partialFillTradeSell(Trade trade, Trade openTrade, Stock stock, Account account) {
+        partialFillTradeGeneric(trade, openTrade, stock);
+        trade.setFilled_quantity(trade.getQuantity());
+        trade.setAvg_price(openTrade.getBid());
 
-        // else 
-        System.out.println("Trade unable to be filled / matched.");
+        // Reflect changes in stock and account
+        account.updateBalance(trade.getFilled_quantity() * trade.getAvg_price());
+        stock.setAskVolume(stock.getAskVolume() + trade.getFilled_quantity());
     }
 
     // Helper function for fillTrade and fillTradeSell
@@ -204,6 +269,15 @@ public class MarketMaker {
         trade.setStatus("filled");
         trade.setDate(Instant.now());
         trade.setFilled_quantity(trade.getQuantity());
+
+        openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
+        stock.setLastPrice(trade.getAvg_price());
+    }
+
+    // Helper function for partial fill trade methods
+    private void partialFillTradeGeneric(Trade trade, Trade openTrade, Stock stock) {
+        trade.setStatus("partial-filled");
+        trade.setDate(Instant.now());
 
         openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
         stock.setLastPrice(trade.getAvg_price());
@@ -245,5 +319,19 @@ public class MarketMaker {
         }
 
         return false;
+    }
+
+    // Helper function
+    // Get portfolio for trade
+    private Portfolio getPortfolioForTrade(int id) {
+        Optional<Portfolio> pfEntity = pfRepository.findById(id);
+        Portfolio portfolio;
+        if (!pfEntity.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } else {
+            portfolio = pfEntity.get();
+        }
+
+        return portfolio;
     }
 }
