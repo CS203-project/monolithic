@@ -189,14 +189,7 @@ public class MarketMaker {
 
     // Process Market Order for a Sell Action
     private void processMarketOrderSell(Trade trade, Stock stock, Account account) {
-        int customer_id = trade.getCustomer_id();
-        Portfolio portfolio = getPortfolioForTrade(customer_id);
-
-        if (!portfolio.containsAssetToSell(trade.getSymbol(), trade.getQuantity())) {
-            System.out.println("No such asset in portfolio.");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
+        checkPortfolio(trade);
         Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
 
         // Market order (sell) conditions for fill / partial fill
@@ -212,6 +205,55 @@ public class MarketMaker {
             return;
         }
     }
+
+    // Process Limit Order for a Buy Action
+    private void processLimitOrderBuy(Trade trade, Stock stock, Account account) {
+        Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
+
+        double price = trade.getBid();
+        double ask = openTrade.getAsk();
+
+        // Limit order (buy) conditions for fill / partial-fill
+        if (price >= ask) {
+            boolean sufficient_quantity = checkQuantity(openTrade, trade);
+            if (sufficient_quantity) {
+                fillTrade(trade, openTrade, stock, account);
+            } else {
+                partialFillTrade(trade, openTrade, stock, account, 2);
+            }
+        }
+    }
+
+    // Process Limit Order for a Sell Action
+    private void processLimitOrderSell(Trade trade, Stock stock, Account account) {
+        checkPortfolio(trade);
+        Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
+
+        double price = trade.getAsk();
+        double bid = openTrade.getBid();
+
+        // Limit order (sell) conditions for fill / partial-fill
+        if (price <= bid) {
+            boolean willing_quantity = checkQuantity(openTrade, trade);
+            if (willing_quantity) {
+                fillTradeSell(trade, openTrade, stock, account);
+            } else {
+                partialFillTradeSell(trade, openTrade, stock, account);
+            }
+        }
+    }
+
+    // Helper function to check if portfolio contains assets to Sell
+    private void checkPortfolio(Trade trade) {
+        int customer_id = trade.getCustomer_id();
+        Portfolio portfolio = getPortfolioForTrade(customer_id);
+
+        if (!portfolio.containsAssetToSell(trade.getSymbol(), trade.getQuantity())) {
+            System.out.println("No such asset in portfolio.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
 
     // Fill Trade for a Buy Action
     private void fillTrade(Trade trade, Trade openTrade, Stock stock, Account account) {
