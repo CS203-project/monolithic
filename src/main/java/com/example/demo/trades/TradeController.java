@@ -31,6 +31,8 @@ import com.example.demo.portfolio.Portfolio;
 import com.example.demo.portfolio.PortfolioRepository;
 import com.example.demo.portfolio.Asset;
 
+import com.example.demo.config.*;
+
 import java.util.Optional;
 import java.util.List;
 import java.util.Iterator;
@@ -64,7 +66,7 @@ public class TradeController {
 
     @GetMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Trade getTradeByID(@PathVariable int id) {
+    public @ResponseBody Trade getTradeByID(@PathVariable int id) throws UnauthorizedException {
         // Authentication
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
@@ -78,7 +80,7 @@ public class TradeController {
 
     @PutMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Trade cancelTrade(@PathVariable int id) {
+    public @ResponseBody Trade cancelTrade(@PathVariable int id) throws UnauthorizedException {
         // Authentication
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
@@ -96,7 +98,7 @@ public class TradeController {
 
     @PostMapping("/trades")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
+    public @ResponseBody Trade createTrade(@RequestBody Trade trade) throws UnauthorizedException {
 
         // Authentication
         User currentUser;
@@ -137,6 +139,11 @@ public class TradeController {
             }
         }
 
+        // stock price would've been changed through market matching
+        // update price of assets
+        updateAssetsPrice(stock);
+
+        // add to portfolio
         reflectInPortfolio(trade, stock);
 
         // reflect changes in database
@@ -398,11 +405,12 @@ public class TradeController {
 
     private void reflectInPortfolio(Trade trade, Stock stock) {
 
-        updateAssetsPrice(stock);
+        // Add new asset from trade
         Asset asset = new Asset(stock.getSymbol(), trade.getFilled_quantity(), trade.getAvg_price());
         addAsset(asset);
     }
 
+    // Update price of assets
     private void updateAssetsPrice(Stock stock) {
         Optional<List<Asset>> assetEntity = assetRepository.findByCode(stock.getSymbol());
         List<Asset> assets;
