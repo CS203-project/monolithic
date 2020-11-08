@@ -141,7 +141,7 @@ public class MarketMaker {
             processMarketOrderBuy(trade, stock, account);
         } else if (action.equals("sell")) {
             // market order - sell
-            // processMarketOrderSell(trade, stock, account);
+            processMarketOrderSell(trade, stock, account);
         }
     }
 
@@ -150,10 +150,10 @@ public class MarketMaker {
         String action = trade.getAction();
         if (action.equals("buy")) {
             // limit order - buy
-            // processLimitOrderBuy(trade, stock, account);
+            processLimitOrderBuy(trade, stock, account);
         } else if (action.equals("sell")) {
             // limit order - sell
-            // processLimitOrderSell(trade, stock, account);
+            processLimitOrderSell(trade, stock, account);
         }
     }
 
