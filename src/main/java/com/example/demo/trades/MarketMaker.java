@@ -9,6 +9,8 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 
+import com.example.demo.accounts.Account;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ public class MarketMaker {
         expireTrades();
     }
 
+    // Find Open Trades matching symbol and action
     public Trade locateOpenTrade(String symbol, String action) {
         List<Trade> tradePairs = this.marketTrades.get(symbol);
         Trade openTrade;
@@ -59,6 +62,7 @@ public class MarketMaker {
         return openTrade;
     }
 
+    // Create Trades
     // From TestConstants.java:
     // *** When your API starts (or market starts), your API will auto-create multiple open buy and sell trades,
     // *** one pair (buy and sell) for each stock listed at the bid and ask price, respectively.
@@ -80,6 +84,8 @@ public class MarketMaker {
         return tradePairsBySymbol;
     }
 
+    // Make Trades
+    // Helper function
     private void makeTrades(Stock stock, HashMap<String, List<Trade>> tradePairsBySymbol) {
         String symbol = stock.getSymbol();
 
@@ -101,6 +107,7 @@ public class MarketMaker {
         tradePairsBySymbol.put(symbol, tradePairs);
     }
 
+    // Expire Trades
     public void expireTrades() {
         List<Trade> trades = tradeService.listTrades();
         for (Trade trade : trades) {
@@ -112,8 +119,100 @@ public class MarketMaker {
         }
     }
 
+    // Generate Difference
     private double generatePointDifference() {
         Random random = new Random();
         return random.nextDouble();
+    }
+
+    public void processMarketOrder(Trade trade, Stock stock, Account account) {
+        if (!marketOpen) return;
+        String action = trade.getAction();
+        if (action.equals("buy")) {
+            // market order - buy
+            processMarketOrderBuy(trade, stock, account);
+        } else if (action.equals("sell")) {
+            // market order - sell
+            // processMarketOrderSell(trade, stock, account);
+        }
+    }
+
+    public void processLimitOrder(Trade trade, Stock stock, Account account) {
+        if (!marketOpen) return;
+        String action = trade.getAction();
+        if (action.equals("buy")) {
+            // limit order - buy
+            // processLimitOrderBuy(trade, stock, account);
+        } else if (action.equals("sell")) {
+            // limit order - sell
+            // processLimitOrderSell(trade, stock, account);
+        }
+    }
+
+    public void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
+        Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
+
+        boolean sufficient_funds = checkFunds(openTrade, trade, account);
+        boolean sufficient_quantity = checkQuantity(openTrade, trade);
+
+        // Market order (buy) conditions for fill / partial fill
+        if (sufficient_funds && sufficient_quantity) {
+            // fillTrade(trade, openTrade, stock, account);
+            // System.out.println("Trade filled");
+            // return;
+        }
+
+        if (!sufficient_funds && sufficient_quantity) {
+            // partialFillTrade(trade, openTrade, stock, account, 1);
+            // System.out.println("Trade partially filled");
+            // return;
+        }
+
+        if (sufficient_funds && !sufficient_quantity) {
+            // partialFillTrade(trade, openTrade, stock, account, 2);
+            // System.out.println("Trade partially filled");
+            // return;
+        }
+
+        // else 
+        System.out.println("Trade unable to be filled / matched.");
+    }
+
+    // Helper function
+    private boolean checkFunds(Trade openTrade, Trade customerTrade, Account account) {
+
+        double available_balance = account.getAvailable_balance();
+        double openTradePrice = openTrade.getAsk();
+        int tradeQuantity = customerTrade.getQuantity();
+
+        if (available_balance < (openTradePrice * tradeQuantity)) return false;
+        return true;
+    }
+
+    // Helper function
+    private boolean checkQuantity(Trade openTrade, Trade customerTrade) {
+
+        int openQuantity = openTrade.getQuantity();
+        int tradeQuantity = customerTrade.getQuantity();
+
+        String action = customerTrade.getAction();
+
+        if (action.equals("buy")) {
+            if (openQuantity < tradeQuantity) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        
+        if (action.equals("sell")) {
+            if (openQuantity > tradeQuantity) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

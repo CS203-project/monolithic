@@ -41,16 +41,16 @@ import java.util.Iterator;
 public class TradeController {
     private TradeService tradeService;
     private AccountsRepository accRepository;
-    private StocksRepository stocksRepository;
+    private StockService stockService;
     private AssetRepository assetRepository;
     private PortfolioRepository pfRepository;
     private MarketMaker marketMaker;
 
     @Autowired
-    public TradeController(MarketMaker marketMaker, TradeService tradeService, AccountsRepository accRepository, StocksRepository stocksRepository, AssetRepository assetRepository) {
+    public TradeController(MarketMaker marketMaker, TradeService tradeService, AccountsRepository accRepository, StockService stockService, AssetRepository assetRepository) {
         this.tradeService = tradeService;
         this.accRepository = accRepository;
-        this.stocksRepository = stocksRepository;
+        this.stockService = stockService;
         this.assetRepository = assetRepository;
         this.marketMaker = marketMaker;
     }
@@ -65,20 +65,28 @@ public class TradeController {
 
         // Prevents user from creating trade for another customer
         verifyTradeOwnership(trade, currentUser.getId());
-
         // If neither buy or sell, invalid trade
-        String action = trade.getAction();
-        if (!action.equals("buy") && !action.equals("sell")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        verifyTradeAction(trade);   
+
+        String stockSymbol = trade.getSymbol();
+        Stock stock = stockService.getStock(stockSymbol);
+        Account account = getAccountForTrade(trade.getAccount_id());
+
+        // Check type of order
+        if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
+            // market order
+            // Trade matchedTrade = marketMaker.processMarketOrder(trade, stock, account);
+            marketMaker.processMarketOrder(trade, stock, account);
+        } else {
+            // limit order
+            marketMaker.processLimitOrder(trade, stock, account);
         }
 
-        // String stockSymbol = trade.getSymbol();
-        // Stock stock = getStockForTrade(stockSymbol);
-        // Account account = getAccountForTrade(trade.getAccount_id());
-
+        // return matchedTrade
         return trade;
     }
 
+    // Get Trade by ID
     @GetMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade getTradeByID(@PathVariable int id) throws UnauthorizedException {
@@ -93,6 +101,7 @@ public class TradeController {
         return trade;
     }
 
+    // Cancel Trade
     @PutMapping("/trades/{id}")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody Trade cancelTrade(@PathVariable int id) throws UnauthorizedException {
@@ -112,11 +121,34 @@ public class TradeController {
     }
 
     // Helper function
+    // Checks if trade is either buy or sell only
+    private void verifyTradeAction(Trade trade) {
+        String action = trade.getAction();
+        if (!action.equals("buy") && !action.equals("sell")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // Helper function
     // Checks if the trade belongs to the currentUser
     private void verifyTradeOwnership(Trade trade, int customer_id) {
         if(trade.getCustomer_id() != customer_id) {
             System.out.println("Trade of this ID is not accessible to this user");
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
+    }
+
+    // Helper function
+    // Returns account to be used for trading
+    private Account getAccountForTrade(int account_id) {
+        Optional<Account> accountEntity = accRepository.findById(account_id);
+        Account account;
+        if (!accountEntity.isPresent()) {
+            throw new AccountNotFoundException(account_id);
+        } else {
+            account = accountEntity.get();
+        }
+
+        return account;
     }
 }
