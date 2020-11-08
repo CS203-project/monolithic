@@ -21,12 +21,42 @@ import java.util.Random;
 @ConditionalOnProperty(name="scheduling.enabled", matchIfMissing=true)
 public class MarketMaker {
     private StockService stockService;
+    private TradeService tradeService;
     private boolean marketOpen;
+    private HashMap<String, List<Trade>> marketTrades; 
 
     @Autowired
-    public MarketMaker(StockService stockService) {
+    public MarketMaker(StockService stockService, TradeService tradeService) {
         this.stockService = stockService;
+        this.tradeService = tradeService;
         this.marketOpen = stockService.isOpen();
+        this.marketTrades = autoCreate();
+    }
+
+    // Checks and updates trades every hour
+    @Scheduled(cron="* 0 9-17/1 * * MON-FRI")
+    public void updateEveryHour() {
+        if (marketOpen) {
+            this.marketTrades = autoCreate();
+            return;
+        }
+
+        expireTrades();
+    }
+
+    public Trade locateOpenTrade(String symbol, String action) {
+        List<Trade> tradePairs = this.marketTrades.get(symbol);
+        Trade openTrade;
+
+        if (action.equals("buy")) {
+            // in the trade pair, the first one is a buy
+            openTrade = tradePairs.get(0);
+        } else {
+            // in the trade pair, the second one is a sell
+            openTrade = tradePairs.get(1);
+        }
+
+        return openTrade;
     }
 
     // From TestConstants.java:
@@ -69,6 +99,17 @@ public class MarketMaker {
         tradePairs.add(sell);
 
         tradePairsBySymbol.put(symbol, tradePairs);
+    }
+
+    public void expireTrades() {
+        List<Trade> trades = tradeService.listTrades();
+        for (Trade trade : trades) {
+            int hourCreated = trade.getHour();
+            // expire trades that are not already filled / partially filled, and those created while market was open
+            if ((!trade.getStatus().equals("partial-filled")) && (!trade.getStatus().equals("filled")) && (hourCreated < 17 && hourCreated > 9) && !trade.createdOnWeekend()) {
+                trade.setStatus("expired");
+            }
+        }
     }
 
     private double generatePointDifference() {
