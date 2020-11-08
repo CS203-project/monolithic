@@ -28,6 +28,8 @@ public class Asset {
     @JoinColumn(name = "customer_id")
     private Portfolio portfolio;
 
+    public Asset() {}
+
     public Asset(String code, int quantity, double avg_price) {
         this.code = code;
         this.quantity = this.quantity + quantity;
