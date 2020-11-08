@@ -81,14 +81,14 @@ public class TradeController {
             marketMaker.processLimitOrder(trade, stock, account);
         }
 
-        // stock price would've been changed through market matching, update price of assets
-        updateAssetsPrice(stock);
         stockService.setStock(stock);
         tradeService.addTrade(trade);
 
         // add to portfolio
         reflectInPortfolio(trade, stock);
-        
+
+        // stock price would've been changed through market matching, update price of assets
+        updateAssetsPrice(stock);
         return trade;
     }
 
