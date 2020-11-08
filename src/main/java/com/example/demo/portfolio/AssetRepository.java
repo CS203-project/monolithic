@@ -9,5 +9,6 @@ import java.util.Optional;
 // CRUD refers Create, Read, Update, Delete
 
 public interface AssetRepository extends CrudRepository<Asset, Integer> {
-
+    // list of assets with the same code, but corresponding to different portfolios
+    Optional<List<Asset>> findByCode(String code);
 }

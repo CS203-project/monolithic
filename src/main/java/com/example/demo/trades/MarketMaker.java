@@ -49,22 +49,6 @@ public class MarketMaker {
         }
     }
 
-    // From TestConstants.java:
-    // *** These trades are referred to as the market maker's trades - to create liquidity in the market.
-    // *** The customers' trades can then be matched with these market maker's trades.
-    public Trade matchTrade(Trade customerTrade) {
-        String symbol = customerTrade.getSymbol();
-        String action = customerTrade.getAction();
-        int quantity = customerTrade.getQuantity();
-
-        Trade tradeToMatch = locateOpenTrade(symbol, action, quantity);
-        if (tradeToMatch == null) {
-            System.out.println("No open trades suitable to match");
-        }
-
-        return null;
-    }
-
     // Helper function
     // Find open trades that were created by MarketMaker for a specific symbol
     public Trade locateOpenTrade(String symbol, String action, int quantity) {

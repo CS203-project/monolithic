@@ -23,6 +23,8 @@ import com.example.demo.user.User;
 
 import com.example.demo.user.UserService;
 
+import com.example.demo.config.*;
+
 @RestController
 public class AccountsController {
     // @Autowired
@@ -39,7 +41,7 @@ public class AccountsController {
 
     @PostMapping(path="/accounts")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Account addAccount (@RequestBody Account account) {
+    public @ResponseBody Account addAccount (@RequestBody Account account) throws UnauthorizedException {
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
@@ -55,7 +57,7 @@ public class AccountsController {
 
     @GetMapping(path="/accounts")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Iterable<Account> getAccounts() {
+    public @ResponseBody Iterable<Account> getAccounts() throws UnauthorizedException {
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
@@ -76,7 +78,7 @@ public class AccountsController {
 
     @GetMapping(path="/accounts/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Account getAccountById(@PathVariable int id) {
+    public @ResponseBody Account getAccountById(@PathVariable int id) throws UnauthorizedException {
         User currentUser;
         AuthorizedUser context = new AuthorizedUser();
         currentUser = context.getUser();
