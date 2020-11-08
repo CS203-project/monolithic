@@ -81,10 +81,12 @@ public class UserService {
     User m = new User("manager_1", "01_manager_01", "ROLE_MANAGER");
     User a1 = new User("analyst_1", "01_analyst_01", "ROLE_ANALYST");
     User a2 = new User("analyst_2", "02_analyst_02", "ROLE_ANALYST");
+    User u = new User("user", "password", "ROLE_USER");
     Stock s = new Stock("A17U");
     this.createUser(m);
     this.createUser(a1);
     this.createUser(a2);
+    this.createUser(u);
     this.stockService.marketOpen();
   }
 

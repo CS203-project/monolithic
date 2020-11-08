@@ -62,6 +62,11 @@ public class StockService {
     return search.get();
   }
 
+  public Iterable<Stock> getStocks() {
+    if (!this.isOpen()) return null;
+    return this.stockRepo.findAll();
+  }
+
   public Stock setStock(Stock stock) throws NotFoundException {
     Stock search = this.getStock(stock.getSymbol());
     if (search == null) return null;
