@@ -109,7 +109,7 @@ public class MarketMaker {
             Trade buy = new Trade("buy", symbol, 20000, "open");
             Trade sell = new Trade("sell", symbol, 20000, "open");
 
-            double stock_last_price = stock.getLast_price();
+            double stock_last_price = stock.getLastPrice();
             buy.setBid(stock_last_price - pointDifference);
             sell.setAsk(stock_last_price + pointDifference);
 

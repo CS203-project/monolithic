@@ -25,7 +25,7 @@ import com.example.demo.accounts.AccountNotFoundException;
 import com.example.demo.accounts.Account;
 import com.example.demo.trades.StocksRepository;
 import com.example.demo.trades.Stock;
-import com.example.demo.trades.StockNotFoundException;
+import com.example.demo.config.*;
 import com.example.demo.portfolio.AssetRepository;
 import com.example.demo.portfolio.Portfolio;
 import com.example.demo.portfolio.PortfolioRepository;
@@ -93,7 +93,7 @@ public class TradeController {
 
     @PostMapping("/trades")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Trade createTrade(@RequestBody Trade trade) {
+    public @ResponseBody Trade createTrade(@RequestBody Trade trade) throws NotFoundException {
 
         // Authentication
         User currentUser;
@@ -264,8 +264,8 @@ public class TradeController {
 
         // Reflect in openTrade / stock
         openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
-        stock.setLast_price(trade.getAvg_price());
-        stock.setAsk_volume(stock.getAsk_volume() + trade.getFilled_quantity());
+        stock.setLastPrice(trade.getAvg_price());
+        stock.setAskVolume(stock.getAskVolume() + trade.getFilled_quantity());
     }
 
     private void partialFillTrade(Trade trade, Trade openTrade, Stock stock, Account account, int status) {
@@ -290,8 +290,8 @@ public class TradeController {
 
         // Reflect in openTrade / stock
         openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
-        stock.setLast_price(trade.getAvg_price());
-        stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
+        stock.setLastPrice(trade.getAvg_price());
+        stock.setAskVolume(stock.getAskVolume() - trade.getFilled_quantity());
     }
 
     private void fillTrade(Trade trade, Trade openTrade, Stock stock, Account account) {
@@ -306,8 +306,8 @@ public class TradeController {
         
         // Reflect in openTrade / stock
         openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
-        stock.setLast_price(trade.getAvg_price());
-        stock.setAsk_volume(stock.getAsk_volume() - trade.getFilled_quantity());
+        stock.setLastPrice(trade.getAvg_price());
+        stock.setAskVolume(stock.getAskVolume() - trade.getFilled_quantity());
     }
 
     private void fillTradeSell(Trade trade, Trade openTrade, Stock stock, Account account) {
@@ -322,8 +322,8 @@ public class TradeController {
 
         // Reflect in openTrade / stock
         openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
-        stock.setLast_price(trade.getAvg_price());
-        stock.setAsk_volume(stock.getAsk_volume() + trade.getFilled_quantity());
+        stock.setLastPrice(trade.getAvg_price());
+        stock.setAskVolume(stock.getAskVolume() + trade.getFilled_quantity());
     }
 
     private void checkPortfolioContainsAsset(Portfolio portfolio, Trade trade) {
@@ -412,11 +412,11 @@ public class TradeController {
     }
 
     // Helper function
-    private Stock getStockForTrade(String stockSymbol) {
+    private Stock getStockForTrade(String stockSymbol) throws NotFoundException {
         Optional<Stock> stockEntity = stocksRepository.findBySymbol(stockSymbol);
         Stock stock;
         if (!stockEntity.isPresent()) {
-            throw new StockNotFoundException(stockSymbol);
+            throw new NotFoundException(stockSymbol);
         } else {
             stock = stockEntity.get();
         }

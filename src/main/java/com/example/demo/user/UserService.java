@@ -23,24 +23,25 @@ import com.example.demo.portfolio.*;
 @Service
 public class UserService {
   private UserRepository UR;
+  private StockService stockService;
   private PortfolioRepository PR;
   private CMSRepository cmsRepo;
   private AccountsRepository accountsRepo;
   private TransfersRepository transfersRepo;
   private AssetRepository assetRepo;
-  private StocksRepository stocksRepo;
   private TradeRepository tradeRepo;
-  // CMSRepository cmsRepo, AccountsRepository accountsRepo, TransfersRepository transfersRepo, AssetRepository assetRepo, StocksRepository stocksRepo, TradeRepository tradeRepo
   
   @Autowired
-  public UserService(UserRepository UR, PortfolioRepository PR, CMSRepository cmsRepo, AccountsRepository accountsRepo, TransfersRepository transfersRepo, AssetRepository assetRepo, StocksRepository stocksRepo, TradeRepository tradeRepo) {
+  public UserService(UserRepository UR, StockService stockService, PortfolioRepository PR,
+  CMSRepository cmsRepo, AccountsRepository accountsRepo, TransfersRepository transfersRepo,
+  AssetRepository assetRepo, TradeRepository tradeRepo) {
     this.UR = UR;
+    this.stockService = stockService;
     this.PR = PR;
     this.cmsRepo = cmsRepo;
     this.accountsRepo = accountsRepo;
     this.transfersRepo = transfersRepo;
     this.assetRepo = assetRepo;
-    this.stocksRepo = stocksRepo;
     this.tradeRepo = tradeRepo;
   }
   
@@ -76,7 +77,6 @@ public class UserService {
     this.accountsRepo.deleteAll();
     this.transfersRepo.deleteAll();
     this.assetRepo.deleteAll();
-    this.stocksRepo.deleteAll();
     this.tradeRepo.deleteAll();
     User m = new User("manager_1", "01_manager_01", "ROLE_MANAGER");
     User a1 = new User("analyst_1", "01_analyst_01", "ROLE_ANALYST");
@@ -85,7 +85,7 @@ public class UserService {
     this.createUser(m);
     this.createUser(a1);
     this.createUser(a2);
-    this.stocksRepo.save(s);
+    this.stockService.marketOpen();
   }
 
   /**
@@ -95,7 +95,7 @@ public class UserService {
   * @return     User userOfId
   * @throws     ForbiddenException NotFoundException
   */
-  public User getUser(int id, User user, boolean isManager) throws ForbiddenException, NotFoundException {
+  public User getUser(int id, User user, boolean isManager)throws ForbiddenException, NotFoundException {
     if ((user.getId() != id) && !isManager) throw new ForbiddenException("Unauthorized to view another user");
     Optional<User> search = this.UR.findById(id);
     if (!search.isPresent()) throw new NotFoundException("Searched User does not exists");
@@ -131,7 +131,8 @@ public class UserService {
   * @return     User editedUser
   * @throws     ForbiddenException NotFoundException BadRequestException
   */
-  public User editUser(User edits, int id, User user, boolean isManager) throws NotFoundException, ForbiddenException, BadRequestException {
+  public User editUser(User edits, int id, User user, boolean isManager)
+  throws NotFoundException, ForbiddenException, BadRequestException {
     Optional<User> search = this.UR.findById(id);
     if (!search.isPresent()) throw new NotFoundException("Invalid Id: " + id);
     if (edits.getNric() != null && !this.validateNric(edits.getNric())) throw new BadRequestException("Invalid NRIC");

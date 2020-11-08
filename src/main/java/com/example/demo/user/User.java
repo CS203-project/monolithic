@@ -38,7 +38,8 @@ public class User implements UserDetails {
   private Boolean active;
   
   public User() {}
-  public User(Integer id, String fullName, String nric, String phone, String address, String username, String password, String authorities, boolean active) {
+  public User(Integer id, String fullName, String nric, String phone,
+  String address, String username, String password, String authorities, boolean active) {
     this.id = id;
     this.fullName = fullName;
     this.nric = nric;
@@ -63,7 +64,8 @@ public class User implements UserDetails {
   @Override
   public String toString() {
     return String.format(
-      "id=%d // fullName=%s // nric=%s // phone=%s // address=%s // username=%s // password=%s // authorities=%s // active=%s",
+      "id=%d // fullName=%s // nric=%s // phone=%s // address=%s // username=%s // password=%s " +
+      "// authorities=%s // active=%s",
       this.id, this.fullName, this.nric, this.phone, this.address, this.username, this.password,
       this.authorities, this.active == null ? "null" : Boolean.toString(this.active)
       );

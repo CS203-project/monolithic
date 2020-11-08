@@ -80,7 +80,8 @@ public class UserController {
   */
   @RequestMapping(value = "/customers", method = RequestMethod.POST)
   @ResponseStatus(HttpStatus.CREATED)
-  public @ResponseBody User addNewUser (@Valid @RequestBody User user) throws BadRequestException, ConflictException, UnauthorizedException {
+  public @ResponseBody User addNewUser (@Valid @RequestBody User user)
+  throws BadRequestException, ConflictException, UnauthorizedException {
     System.out.println("POST /customers | " + user);
     AuthorizedUser context = new AuthorizedUser();
     context.validate();
@@ -99,11 +100,12 @@ public class UserController {
   */
   @RequestMapping(value = "/customers/{id}", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody User getUser (@PathVariable int id) throws ForbiddenException, NotFoundException, UnauthorizedException {
+  public @ResponseBody User getUser (@PathVariable int id)
+  throws ForbiddenException, NotFoundException, UnauthorizedException {
     System.out.println("GET /customers | " + id);
     AuthorizedUser context = new AuthorizedUser();
     context.validate();
-    return this.US.getUser(id, context.getUser(), context.isManager()); // ForbiddenException, NotFoundException 
+    return this.US.getUser(id, context.getUser(), context.isManager());
   }
 
   /**
@@ -118,10 +120,11 @@ public class UserController {
   */
   @RequestMapping(value = "/customers/{id}", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody User editUser (@Valid @RequestBody User user, @PathVariable int id) throws NotFoundException, ForbiddenException, BadRequestException, UnauthorizedException {
+  public @ResponseBody User editUser (@Valid @RequestBody User user, @PathVariable int id)
+  throws NotFoundException, ForbiddenException, BadRequestException, UnauthorizedException {
     System.out.println("PUT /customers | " + user);
     AuthorizedUser context = new AuthorizedUser();
     context.validate();
-    return this.US.editUser(user, id, context.getUser(), context.isManager()); // ForbiddenException, NotFoundException, BadRequestException
+    return this.US.editUser(user, id, context.getUser(), context.isManager());
   }
 }

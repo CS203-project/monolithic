@@ -5,41 +5,64 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
 
 @Entity
-@Getter
-@Setter
-@ToString
 public class Stock {
-    @Id @GeneratedValue(strategy=GenerationType.SEQUENCE)
-    private int id;
-    private String symbol;
-    private double last_price;
-    private int bid_volume;
-    private double bid;
-    private int ask_volume;
-    private double ask;
+	@Id @GeneratedValue(strategy=GenerationType.SEQUENCE)
+	private Integer id;
+	private String symbol;
+	private Integer bidVolume;
+	private Integer askVolume;
+	private Double bid;
+	private Double ask;
+	private Double lastPrice;
 
-    public Stock() {}
-    public Stock(String symbol) {
-        this.symbol = "A17U";
-        this.last_price = 3.28;
-        this.bid_volume = 20000;
-        this.bid = 3.26;
-        this.ask_volume = 20000;
-        this.ask = 3.29;
-    }
-    public Stock(JSONObject json) {
-        this.symbol = json.getString("symbol");
-        this.last_price = json.optDouble("close", 0);
-        this.bid_volume = json.getInt("volume");
-        this.bid = json.optDouble("low", 0);
-        this.ask_volume = json.getInt("volume");
-        this.ask = json.optDouble("high", 0);
-    }
+	public Stock() {}
+	public Stock(String symbol) {
+		this.symbol = symbol;
+		this.bidVolume = 20000;
+		this.askVolume = 20000;
+		this.bid = this.random(1, 20);
+		this.ask = this.random(20, 40);
+		this.lastPrice = this.random(this.bid, this.ask);
+	}
+	public Stock(JSONObject json) {
+		this.symbol = json.getString("symbol");
+		this.lastPrice = json.optDouble("close", 0);
+		this.bidVolume = json.getInt("volume");
+		this.bid = json.optDouble("low", 0);
+		this.askVolume = json.getInt("volume");
+		this.ask = json.optDouble("high", 0);
+	}
+
+	private double random(double min, double max) {
+		return min + ((max - min) * Math.random());
+	}
+
+	public Integer getId() { return this.id; }
+	public String getSymbol() { return this.symbol; }
+	@JsonProperty("bid_volume")
+	public Integer getBidVolume() { return this.bidVolume; }
+	@JsonProperty("ask_volume")
+	public Integer getAskVolume() { return this.askVolume; }
+	public Double getBid() { return this.bid; }
+	public Double getAsk() { return this.ask; }
+	@JsonProperty("last_price")
+	public Double getLastPrice() { return this.lastPrice; }
+	
+	public void setId(int id) { this.id = id; }
+	public void setSymbol(String symbol) { this.symbol = symbol; }
+	@JsonProperty("bid_volume")
+	public void setBidVolume(int bidVolume) { this.bidVolume = bidVolume; }
+	@JsonProperty("ask_volume")
+	public void setAskVolume(int askVolume) { this.askVolume = askVolume; }
+	public void setBid(double bid) { this.bid = bid; }
+	public void setAsk(double ask) { this.ask = ask; }
+	@JsonProperty("last_price")
+	public void setLastPrice(double lastPrice) { this.lastPrice = lastPrice; }
 
 }
