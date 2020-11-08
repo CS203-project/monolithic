@@ -149,6 +149,27 @@ public class MarketMaker {
         }
     }
 
+    // Fill Trade for a Buy Action
+    private void fillTrade(Trade trade, Trade openTrade, Stock stock, Account account) {
+        fillTradeGeneric(trade, openTrade, stock);
+        trade.setAvg_price(openTrade.getAsk());
+
+        // Reflect changes in stock and account
+        account.updateBalance(-(trade.getFilled_quantity() * trade.getAvg_price()));
+        stock.setAskVolume(stock.getAskVolume() - trade.getFilled_quantity());
+    }
+
+    // Fill Trade for a Sell Action
+    private void fillTradeSell(Trade trade, Trade openTrade, Stock stock, Account account) {
+        fillTradeGeneric(trade, openTrade, stock);
+        trade.setAvg_price(openTrade.getBid());
+
+        // Reflect changes in stock and account
+        account.updateBalance(trade.getFilled_quantity() * trade.getAvg_price());
+        stock.setAskVolume(stock.getAskVolume() + trade.getFilled_quantity());
+    }
+
+    // Process Market Order for a Buy Action
     public void processMarketOrderBuy(Trade trade, Stock stock, Account account) {
         Trade openTrade = locateOpenTrade(stock.getSymbol(), trade.getAction());
 
@@ -176,6 +197,16 @@ public class MarketMaker {
 
         // else 
         System.out.println("Trade unable to be filled / matched.");
+    }
+
+    // Helper function for fillTrade and fillTradeSell
+    private void fillTradeGeneric(Trade trade, Trade openTrade, Stock stock) {
+        trade.setStatus("filled");
+        trade.setDate(Instant.now());
+        trade.setFilled_quantity(trade.getQuantity());
+
+        openTrade.setQuantity(openTrade.getQuantity() - trade.getFilled_quantity());
+        stock.setLastPrice(trade.getAvg_price());
     }
 
     // Helper function
