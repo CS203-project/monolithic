@@ -23,6 +23,8 @@ import com.example.demo.user.User;
 
 import com.example.demo.user.UserService;
 
+import com.example.demo.config.*;
+
 @RestController
 public class AccountsController {
     // @Autowired
@@ -39,10 +41,10 @@ public class AccountsController {
 
     @PostMapping(path="/accounts")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Account addAccount (@RequestBody Account account) {
-        User currentUser;
+    public @ResponseBody Account addAccount (@RequestBody Account account) throws NotFoundException, UnauthorizedException {
         AuthorizedUser context = new AuthorizedUser();
-        currentUser = context.getUser();
+        context.validate();
+        account.setAvailableBalance(account.getBalance());
 
         // Check if current user associated with new account exists
         if (usrService.findById(account.getCustomer_id()) == null) {
@@ -55,12 +57,11 @@ public class AccountsController {
 
     @GetMapping(path="/accounts")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Iterable<Account> getAccounts() {
-        User currentUser;
+    public @ResponseBody Iterable<Account> getAccounts() throws NotFoundException, UnauthorizedException {
         AuthorizedUser context = new AuthorizedUser();
-        currentUser = context.getUser();
+        context.validate();
 
-        int userID = currentUser.getId();
+        int userID = context.getId();
         
         Iterable<Account> accounts = accRepository.findAll();
         Iterator<Account> iter = accounts.iterator();
@@ -76,12 +77,11 @@ public class AccountsController {
 
     @GetMapping(path="/accounts/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Account getAccountById(@PathVariable int id) {
-        User currentUser;
+    public @ResponseBody Account getAccountById(@PathVariable int id) throws NotFoundException, UnauthorizedException {
         AuthorizedUser context = new AuthorizedUser();
-        currentUser = context.getUser();
+        context.validate();
 
-        int userID = currentUser.getId();
+        int userID = context.getId();
 
         Optional<Account> accountEntity = accRepository.findById(id);
         Account account;
@@ -90,7 +90,7 @@ public class AccountsController {
         } else {
             account = accountEntity.get();
             if (account.getCustomer_id() != userID) {
-                throw new org.springframework.security.access.AccessDeniedException("403 returned");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
             }
         }
 

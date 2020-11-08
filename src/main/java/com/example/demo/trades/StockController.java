@@ -47,8 +47,8 @@ public class StockController {
   * Authentication    USER ONLY
   * @author           Jonathan Chow
   * @param            null
-  * @return           null
-  * @throws           BadRequestException
+  * @return           Iterable<Stock>
+  * @throws           BadRequestException UnauthorizedException
   * @ResponseStatus   200 OK
   */
   @RequestMapping(value = "/stocks", method = RequestMethod.GET)
@@ -67,9 +67,9 @@ public class StockController {
   * GET /stocks/{id}
   * Authentication    USER ONLY
   * @author           Jonathan Chow
-  * @param            null
-  * @return           null
-  * @throws           BadRequestException
+  * @param            symbol
+  * @return           Stock
+  * @throws           BadRequestException UnauthorizedException
   * @ResponseStatus   200 OK
   */
   @RequestMapping(value = "/stocks/{symbol}", method = RequestMethod.GET)

@@ -1,50 +1,35 @@
 package com.example.demo.portfolio;
 
 import java.util.*;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.CascadeType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.*;
-
-@Entity
-@Getter
-@Setter
-@ToString
 public class Portfolio {
-
-    @Id
-    private int customer_id;
-    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
+    private Integer customerId;
     private List<Asset> assets;
-    private double unrealized_gain_loss;
-    private double total_gain_loss;
+    private Double unrealizedGainLoss;
+    private Double totalGainLoss;
 
-    public Portfolio() {
-        this.customer_id = 0;
+
+    public Portfolio(int customerId) {
+        this.customerId = customerId;
         this.assets = new ArrayList<>();
-        this.unrealized_gain_loss = 0;
-        this.total_gain_loss = 0;
+        this.unrealizedGainLoss = 0.0;
+        this.totalGainLoss = 0.0;
     }
 
-    public Portfolio(int customer_id) {
-        this.customer_id = customer_id;
-        this.assets = new ArrayList<>();
-        this.unrealized_gain_loss = 0;
-        this.total_gain_loss = 0;
-    }
+    @JsonProperty("customer_id")
+    public Integer getCustomerId() { return this.customerId; }
+    public List<Asset> getAssets() { return this.assets; }
+    @JsonProperty("unrealized_gain_loss")
+    public Double getUnrealizedGainLoss() { return this.unrealizedGainLoss; }
+    @JsonProperty("total_gain_loss")
+    public Double getTotalGainLoss() { return this.totalGainLoss; }
 
-    public void addAsset(Asset asset) {
-        assets.add(asset); // manually update db?
-    }
-
-    public double getUnrealizedGainLoss() {
-        double gainLoss = 0;
-        for (Asset a : assets)
-            gainLoss += a.getGain_loss();
-        return gainLoss;
-    }
-
-    // public double getRealizedGainLoss()
+    @JsonProperty("customer_id")
+    public void setCustomerId(int customerId) { this.customerId = customerId; }
+    public void setAssets(List<Asset> assets) { this.assets = assets; }
+    @JsonProperty("unrealized_gain_loss")
+    public void setUnrealizedGainLoss(double unrealizedGainLoss) { this.unrealizedGainLoss = unrealizedGainLoss; }
+    @JsonProperty("total_gain_loss")
+    public void setTotalGainLoss(double totalGainLoss) { this.totalGainLoss = totalGainLoss; }
 }

@@ -26,8 +26,8 @@ public class Stock {
 		this.symbol = symbol;
 		this.bidVolume = 20000;
 		this.askVolume = 20000;
-		this.bid = this.random(1, 20);
-		this.ask = this.random(20, 40);
+		this.bid = this.random(1, 10);
+		this.ask = this.random(10, 20);
 		this.lastPrice = this.random(this.bid, this.ask);
 	}
 	public Stock(JSONObject json) {
@@ -40,7 +40,7 @@ public class Stock {
 	}
 
 	private double random(double min, double max) {
-		return min + ((max - min) * Math.random());
+		return Math.round((min + ((max - min) * Math.random())) * 100) / 100;
 	}
 
 	public Integer getId() { return this.id; }

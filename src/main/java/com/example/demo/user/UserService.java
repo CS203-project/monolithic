@@ -24,7 +24,6 @@ import com.example.demo.portfolio.*;
 public class UserService {
   private UserRepository UR;
   private StockService stockService;
-  private PortfolioRepository PR;
   private CMSRepository cmsRepo;
   private AccountsRepository accountsRepo;
   private TransfersRepository transfersRepo;
@@ -32,12 +31,11 @@ public class UserService {
   private TradeRepository tradeRepo;
   
   @Autowired
-  public UserService(UserRepository UR, StockService stockService, PortfolioRepository PR,
+  public UserService(UserRepository UR, StockService stockService,
   CMSRepository cmsRepo, AccountsRepository accountsRepo, TransfersRepository transfersRepo,
   AssetRepository assetRepo, TradeRepository tradeRepo) {
     this.UR = UR;
     this.stockService = stockService;
-    this.PR = PR;
     this.cmsRepo = cmsRepo;
     this.accountsRepo = accountsRepo;
     this.transfersRepo = transfersRepo;
@@ -72,7 +70,6 @@ public class UserService {
   */
   public void reset() throws BadRequestException, ConflictException {
     this.UR.deleteAll();
-    this.PR.deleteAll();
     this.cmsRepo.deleteAll();
     this.accountsRepo.deleteAll();
     this.transfersRepo.deleteAll();
@@ -82,7 +79,6 @@ public class UserService {
     User a1 = new User("analyst_1", "01_analyst_01", "ROLE_ANALYST");
     User a2 = new User("analyst_2", "02_analyst_02", "ROLE_ANALYST");
     User u = new User("user", "password", "ROLE_USER");
-    Stock s = new Stock("A17U");
     this.createUser(m);
     this.createUser(a1);
     this.createUser(a2);
@@ -113,16 +109,14 @@ public class UserService {
   * @throws     BadRequestException
   */
   public User createUser(User user) throws BadRequestException, ConflictException {
+    if (!this.validateNric(user.getNric())) throw new BadRequestException("Invalid NRIC");
     Optional<User> search = this.UR.findByUsername(user.getUsername());
     if (search.isPresent()) throw new ConflictException("User already exists");
-    if (!this.validateNric(user.getNric())) throw new BadRequestException("Invalid NRIC");
     String passwordHash = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt(12));
     user.setPassword(passwordHash);
 
     // create portfolio
     User saved = this.UR.save(user);
-    Portfolio portfolio = new Portfolio(saved.getId());
-    this.PR.save(portfolio);
     return saved;
   }
   

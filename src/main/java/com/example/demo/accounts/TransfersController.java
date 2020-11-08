@@ -21,7 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import com.example.demo.user.User;
 
-import org.springframework.security.access.AccessDeniedException;
+import com.example.demo.config.*;
+import com.example.demo.security.*;
 
 @RestController
 public class TransfersController {
@@ -34,37 +35,13 @@ public class TransfersController {
 
     public TransfersController() {}
 
-    User currentUser;
-
-    public void authenticateCurrentUser() {
-        AuthorizedUser context = new AuthorizedUser();
-        this.currentUser = context.getUser();
-    }
-
-    // Check if account with {id} belongs to currentUser
-    public boolean verifyAccountOwnership(int id) {
-        authenticateCurrentUser();
-
-        int userID = currentUser.getId();
-
-        Optional<Account> accountEntity = accRepository.findById(id);
-        if (accountEntity.isPresent()) {
-            int customerID = accountEntity.get().getCustomer_id();
-            if (userID == customerID) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     @GetMapping(path="/accounts/{id}/transactions")
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Iterable<Transfer> getTransfers(@PathVariable int id) {
-        
-        if (!verifyAccountOwnership(id)) {
-            throw new AccessDeniedException("403 returned");
-        }
+    public @ResponseBody Iterable<Transfer> getTransfers(@PathVariable int id) throws NotFoundException, UnauthorizedException {
+        AuthorizedUser context = new AuthorizedUser();
+        context.validate();
+
+        verifyAccountOwnership(context.getId(), id);
 
         Iterable<Transfer> transfers = transfersRepository.findAll();
         Iterator<Transfer> iter = transfers.iterator();
@@ -81,17 +58,18 @@ public class TransfersController {
 
     @PostMapping(path="/accounts/{id}/transactions")
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody Transfer createTransfer(@RequestBody Transfer transfer, @PathVariable int id) {
+    public @ResponseBody Transfer createTransfer(@RequestBody Transfer transfer, @PathVariable int id) throws NotFoundException, UnauthorizedException {
 
-        if (!verifyAccountOwnership(transfer.getFrom())) {
-            throw new AccessDeniedException("403 returned");
-        }
+        AuthorizedUser context = new AuthorizedUser();
+        context.validate();
+
+        verifyAccountOwnership(context.getId(), id);
 
         int sender_account_id = transfer.getFrom();
         int receiver_account_id = transfer.getTo();
 
         if (id != transfer.getFrom()) {
-            throw new AccessDeniedException("403 returned");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
         Optional<Account> sender_account = accRepository.findById(sender_account_id);
@@ -111,7 +89,20 @@ public class TransfersController {
         sender.updateBalance(-transfer_amount);
         receiver.updateBalance(transfer_amount);
 
+        accRepository.save(sender);
+        accRepository.save(receiver);
         return(transfersRepository.save(transfer));
+    }
+
+    private void verifyAccountOwnership(int user_id, int account_id) {
+        Account acc = findAccount(account_id);
+        if (acc.getCustomer_id() != user_id) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    }
+
+    private Account findAccount(int account_id) {
+        Optional<Account> accountEntity = accRepository.findById(account_id);
+        if (!accountEntity.isPresent()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        return accountEntity.get();
     }
 
 }

@@ -23,22 +23,19 @@ import java.lang.Iterable;
 
 @RestController
 public class PortfolioController {
-    private PortfolioRepository pfRepository;
     private AssetRepository assetRepository;
 
     @Autowired
-    public PortfolioController(PortfolioRepository pfRepository, AssetRepository assetRepository) {
-        this.pfRepository = pfRepository;
+    public PortfolioController(AssetRepository assetRepository) {
         this.assetRepository = assetRepository;
     }
 
-    @RequestMapping(value = "/portfolio", method = RequestMethod.GET)
-    @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody Portfolio getPortfolio() throws NotFoundException {
-        AuthorizedUser context = new AuthorizedUser();
-        Optional<Portfolio> portfolio = this.pfRepository.findById(context.getId());
-        if (!portfolio.isPresent()) throw new NotFoundException("Portfolio Not Found");
-        return portfolio.get();
-    }
-
+    // @RequestMapping(value = "/portfolio", method = RequestMethod.GET)
+    // @ResponseStatus(HttpStatus.OK)
+    // public @ResponseBody Portfolio getPortfolio() throws NotFoundException {
+    //     AuthorizedUser context = new AuthorizedUser();
+    //     Optional<Portfolio> portfolio = this.pfRepository.findById(context.getId());
+    //     if (!portfolio.isPresent()) throw new NotFoundException("Portfolio Not Found");
+    //     return portfolio.get();
+    // }
 }

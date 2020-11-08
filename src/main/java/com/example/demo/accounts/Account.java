@@ -14,9 +14,7 @@ public class Account {
     private double balance;
     private double available_balance;
 
-    public Account() {
-        this.available_balance = balance;
-    }
+    public Account() {}
 
     public String toString() {
         return String.format(
@@ -34,8 +32,12 @@ public class Account {
     public void setCustomerID(int customer_id) {
         this.customer_id = customer_id;
     }
+
+    public void setAvailableBalance(double available_balance) {
+        this.available_balance = available_balance;
+    }
     
-    public void updateBalance(double addBalance) { 
+    public void updateBalance(double addBalance) {
         this.balance += addBalance;
         this.available_balance += addBalance;
     }
