@@ -47,10 +47,10 @@ public class StockService {
   }
 
   public boolean isOpen() {
-    int hour = LocalDateTime.now().getHour();
-    int day = LocalDateTime.now().getDayOfWeek().getValue();
-    if (day > 5 || day < 1) return false;
-    if (hour >= 17 || hour < 9) return false;
+    // int hour = LocalDateTime.now().getHour();
+    // int day = LocalDateTime.now().getDayOfWeek().getValue();
+    // if (day > 5 || day < 1) return false;
+    // if (hour >= 17 || hour < 9) return false;
     return true;
   }
 

@@ -39,6 +39,16 @@ public class Portfolio {
         assets.add(asset); // manually update db?
     }
 
+    public boolean containsAssetToSell(String symbol, int quantity) {
+        for (Asset ownedAsset : assets) {
+            if(ownedAsset.getCode().equals(symbol) && (ownedAsset.getQuantity() == quantity)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public double getUnrealizedGainLoss() {
         double gainLoss = 0;
         for (Asset a : assets)
