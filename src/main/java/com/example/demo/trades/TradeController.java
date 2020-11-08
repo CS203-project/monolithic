@@ -75,14 +75,22 @@ public class TradeController {
         // Check type of order
         if (trade.getBid() == 0.0 || trade.getAsk() == 0.0) {
             // market order
-            // Trade matchedTrade = marketMaker.processMarketOrder(trade, stock, account);
             marketMaker.processMarketOrder(trade, stock, account);
         } else {
             // limit order
             marketMaker.processLimitOrder(trade, stock, account);
         }
 
-        // return matchedTrade
+        // // stock price would've been changed through market matching, update price of assets
+        // updateAssetsPrice(stock);
+
+        // // add to portfolio
+        // reflectInPortfolio(trade, stock);
+
+        // // reflect changes in database
+        // tradeService.addTrade(trade);
+        // stocksRepository.save(stock);
+
         return trade;
     }
 
@@ -150,5 +158,33 @@ public class TradeController {
         }
 
         return account;
+    }
+
+    // Helper function
+    // Update price of assets
+    private void updateAssetsPrice(Stock stock) {
+        Optional<List<Asset>> assetEntity = assetRepository.findByCode(stock.getSymbol());
+        List<Asset> assets;
+
+        if (!assetEntity.isPresent()) {
+            System.out.println("Can't find assets!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } else {
+            assets = assetEntity.get();
+        }
+
+        double stock_price = stock.getLastPrice();
+        for (Asset asset : assets) {
+            asset.setCurrent_price(stock_price);
+            assetRepository.save(asset);
+        }
+    }
+
+    // Helper function
+    // Update portfolio with new asset
+    private void reflectInPortfolio(Trade trade, Stock stock) {
+        // Add new asset from trade
+        Asset asset = new Asset(stock.getSymbol(), trade.getFilled_quantity(), trade.getAvg_price());
+        assetRepository.save(asset);
     }
 }
